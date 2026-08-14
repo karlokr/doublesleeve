@@ -1,0 +1,129 @@
+services:
+  db:
+    image: mariadb:11.4
+    container_name: cryptocards-db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  prestashop:
+    image: prestashop/prestashop:${PS_VERSION}
+    container_name: cryptocards-shop
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_SERVER: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWD: ${DB_PASSWORD}
+      DB_PREFIX: ${DB_PREFIX}
+      PS_INSTALL_AUTO: 1
+      PS_ERASE_DB: 0
+      PS_DOMAIN: ${PS_DOMAIN}
+      # Must stay 0: the shim it installs (docker_updt_ps_domains.php) becomes the
+      # Apache DirectoryIndex and unconditionally redirects to index.php, which with
+      # friendly URLs resolves back to "/" -> infinite 302 loop. PS_DOMAIN is fixed
+      # here, so the shim buys us nothing anyway.
+      PS_HANDLE_DYNAMIC_DOMAIN: 0
+      PS_LANGUAGE: ${PS_LANGUAGE}
+      PS_COUNTRY: ${PS_COUNTRY}
+      PS_ALL_LANGUAGES: 0
+      PS_ENABLE_SSL: 0
+      # Deliberately NOT ${PS_FOLDER_ADMIN}. The entrypoint renames the admin folder
+      # *before* running the installer, and Install.php:1204 hardcodes
+      # $adminFolder = 'admin-dev' for `assets:install`. Any other name here aborts
+      # the install at finalize(). `make provision` renames it to ${PS_FOLDER_ADMIN}
+      # afterwards, which is the value the shop actually runs with.
+      PS_FOLDER_ADMIN: admin-dev
+      PS_FOLDER_INSTALL: install
+      ADMIN_MAIL: ${ADMIN_MAIL}
+      ADMIN_PASSWD: ${ADMIN_PASSWORD}
+      # Used by provisioning/search-index.php to talk to Meilisearch.
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+    ports:
+      - "${PS_PORT}:80"
+    volumes:
+      - ps_html:/var/www/html
+      - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/zz-cryptocards.ini:ro
+      - ./provisioning:/provisioning:ro
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: cryptocards-pma
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_USER: ${DB_USER}
+      PMA_PASSWORD: ${DB_PASSWORD}
+      UPLOAD_LIMIT: 512M
+    ports:
+      - "${PMA_PORT}:80"
+
+  # Scheduler for the price engine and search reindex. Shares ps_html so it runs
+  # exactly the code the web container serves.
+  cron:
+    build:
+      context: .
+      dockerfile: docker/cron/Dockerfile
+    container_name: cryptocards-cron
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      # Cron times are interpreted in THIS timezone. The base image is UTC, so
+      # leaving it unset means "00:15 UTC", not 00:15 where your shop lives.
+      TZ: ${TZ:-UTC}
+    volumes:
+      - ps_html:/var/www/html
+      - ./provisioning:/provisioning:ro
+      - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/zz-cryptocards.ini:ro
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.53
+    container_name: cryptocards-search
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - meili_data:/meili_data
+    ports:
+      - "${MEILI_PORT}:7700"
+    healthcheck:
+      test: ["CMD", "meilisearch", "--help"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: cryptocards-mail
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_UI_PORT}:8025"
+
+volumes:
+  db_data:
+  ps_html:
+  meili_data:

@@ -1,0 +1,218 @@
+group_id,name,abbreviation,is_supplemental,published_on,year,logo_url
+604,Base Set,BS,0,1999-01-09,1999,
+1663,Base Set (Shadowless),BSS,0,1999-01-09,1999,
+635,Jungle,JU,0,1999-06-16,1999,https://images.pokemontcg.io/base2/logo.png
+1418,WoTC Promo,PR,0,1999-07-01,1999,
+630,Fossil,FO,0,1999-10-10,1999,https://images.pokemontcg.io/base3/logo.png
+605,Base Set 2,BS2,0,2000-02-24,2000,https://images.pokemontcg.io/base4/logo.png
+1373,Team Rocket,TR,0,2000-04-24,2000,https://images.pokemontcg.io/base5/logo.png
+1441,Gym Heroes,G1,0,2000-10-14,2000,https://images.pokemontcg.io/gym1/logo.png
+1440,Gym Challenge,G2,0,2000-10-16,2000,https://images.pokemontcg.io/gym2/logo.png
+1396,Neo Genesis,N1,0,2000-12-16,2000,https://images.pokemontcg.io/neo1/logo.png
+1434,Neo Discovery,N2,0,2001-06-01,2001,https://images.pokemontcg.io/neo2/logo.png
+648,Southern Islands,SI,0,2001-07-31,2001,https://images.pokemontcg.io/si1/logo.png
+1389,Neo Revelation,N3,0,2001-09-21,2001,https://images.pokemontcg.io/neo3/logo.png
+1444,Neo Destiny,N4,0,2002-02-28,2002,https://images.pokemontcg.io/neo4/logo.png
+1374,Legendary Collection,LC,0,2002-05-24,2002,https://images.pokemontcg.io/base6/logo.png
+24493,e-Reader Sample Cards,SAMPLE,0,2002-08-02,2002,
+1375,Expedition,EX,0,2002-09-15,2002,
+1455,Best of Promos,PR,0,2002-12-01,2002,
+1397,Aquapolis,AQ,0,2003-01-15,2003,https://images.pokemontcg.io/ecard2/logo.png
+1372,Skyridge,SK,0,2003-05-12,2003,https://images.pokemontcg.io/ecard3/logo.png
+1393,EX Ruby and Sapphire,RS,0,2003-06-18,2003,
+1392,EX Sandstorm,SS,0,2003-09-18,2003,
+1376,EX Dragon,DR,0,2003-11-24,2003,
+1377,EX Team Magma vs Team Aqua,MA,0,2004-03-15,2004,
+1416,EX Hidden Legends,HL,0,2004-06-14,2004,
+2214,Kids WB Promos,KWBP,0,2004-07-02,2004,
+1419,EX FireRed & LeafGreen,RG,0,2004-08-30,2004,
+1853,EX Battle Stadium,BST,0,2004-10-18,2004,
+1428,EX Team Rocket Returns,RR,0,2004-11-01,2004,
+1404,EX Deoxys,DX,0,2005-02-14,2005,
+1410,EX Emerald,EM,0,2005-05-09,2005,
+1398,EX Unseen Forces,UF,0,2005-08-22,2005,
+1429,EX Delta Species,DS,0,2005-10-31,2005,
+1378,EX Legend Maker,LM,0,2006-02-13,2006,
+1379,EX Holon Phantoms,HP,0,2006-05-03,2006,
+1395,EX Crystal Guardians,CG,0,2006-08-30,2006,
+1411,EX Dragon Frontiers,DF,0,2006-11-08,2006,
+1383,EX Power Keepers,PK,0,2007-02-01,2007,
+1421,Diamond and Pearl Promos,PR,0,2007-05-01,2007,
+1430,Diamond and Pearl,DP,0,2007-05-23,2007,
+1368,Mysterious Treasures,MT,0,2007-08-22,2007,https://images.pokemontcg.io/dp2/logo.png
+1541,DP Trainer Kit: Manaphy & Lucario,PR,0,2007-09-03,2007,
+609,DP Training Kit 1 Blue,PR,0,2007-09-24,2007,
+610,DP Training Kit 1 Gold,PR,0,2007-09-24,2007,
+1380,Secret Wonders,SW,0,2007-11-07,2007,https://images.pokemontcg.io/dp3/logo.png
+1405,Great Encounters,GE,0,2008-02-13,2008,https://images.pokemontcg.io/dp4/logo.png
+1390,Majestic Dawn,MD,0,2008-05-21,2008,https://images.pokemontcg.io/dp5/logo.png
+1417,Legends Awakened,LA,0,2008-08-20,2008,https://images.pokemontcg.io/dp6/logo.png
+2155,Countdown Calendar Promos,CCP,1,2008-10-01,2008,
+1369,Stormfront,SF,0,2008-11-05,2008,https://images.pokemontcg.io/dp7/logo.png
+1406,Platinum,PL,0,2009-02-11,2009,https://images.pokemontcg.io/pl1/logo.png
+1367,Rising Rivals,RR,0,2009-05-16,2009,https://images.pokemontcg.io/pl2/logo.png
+1384,Supreme Victors,SV,0,2009-08-19,2009,https://images.pokemontcg.io/pl3/logo.png
+1391,Arceus,AR,0,2009-11-04,2009,https://images.pokemontcg.io/pl4/logo.png
+1433,Rumble,RUM,0,2009-11-16,2009,
+1453,HGSS Promos,PR,0,2010-02-01,2010,
+1402,HeartGold SoulSilver,HS,0,2010-02-10,2010,
+1540,HGSS Trainer Kit: Gyarados & Raichu,PR,0,2010-05-12,2010,
+1399,Unleashed,UL,0,2010-05-12,2010,
+1403,Undaunted,UD,0,2010-08-18,2010,
+1381,Triumphant,TM,0,2010-11-03,2010,
+1415,Call of Legends,CL,0,2011-02-09,2011,https://images.pokemontcg.io/col1/logo.png
+1400,Black and White,BLW,0,2011-04-25,2011,
+1407,Black and White Promos,PR,0,2011-04-25,2011,
+1401,McDonald's Promos 2011,M11,0,2011-06-17,2011,
+1424,Emerging Powers,EPO,0,2011-08-31,2011,https://images.pokemontcg.io/bw2/logo.png
+1538,BW Trainer Kit: Excadrill & Zoroark,BLW,0,2011-09-05,2011,
+1385,Noble Victories,NVI,0,2011-11-16,2011,https://images.pokemontcg.io/bw3/logo.png
+1412,Next Destinies,NXD,0,2012-02-08,2012,https://images.pokemontcg.io/bw4/logo.png
+1386,Dark Explorers,DEX,0,2012-05-09,2012,https://images.pokemontcg.io/bw5/logo.png
+1427,McDonald's Promos 2012,M12,0,2012-06-15,2012,
+1394,Dragons Exalted,DRX,0,2012-08-15,2012,https://images.pokemontcg.io/bw6/logo.png
+1426,Dragon Vault,DRV,0,2012-10-05,2012,https://images.pokemontcg.io/dv1/logo.png
+1408,Boundaries Crossed,BCR,0,2012-11-07,2012,https://images.pokemontcg.io/bw7/logo.png
+1413,Plasma Storm,PLS,0,2013-02-06,2013,https://images.pokemontcg.io/bw8/logo.png
+1382,Plasma Freeze,PLF,0,2013-05-08,2013,https://images.pokemontcg.io/bw9/logo.png
+1370,Plasma Blast,PLB,0,2013-08-14,2013,https://images.pokemontcg.io/bw10/logo.png
+1409,Legendary Treasures,LTR,0,2013-11-06,2013,https://images.pokemontcg.io/bw11/logo.png
+1465,Legendary Treasures: Radiant Collection,LTR,0,2013-11-06,2013,
+1522,Kalos Starter Set,KSS,0,2013-11-08,2013,https://images.pokemontcg.io/xy0/logo.png
+1451,XY Promos,PR,0,2013-12-16,2013,
+1387,XY Base Set,XY,0,2014-02-05,2014,
+1532,XY Trainer Kit: Sylveon & Noivern,PR,0,2014-03-12,2014,
+1464,XY - Flashfire,FLF,0,2014-05-07,2014,https://images.pokemontcg.io/xy2/logo.png
+1692,McDonald's Promos 2014,M14,0,2014-05-23,2014,
+1481,XY - Furious Fists,FFI,0,2014-08-13,2014,https://images.pokemontcg.io/xy3/logo.png
+1494,XY - Phantom Forces,PHF,0,2014-11-05,2014,https://images.pokemontcg.io/xy4/logo.png
+1533,XY Trainer Kit: Bisharp & Wigglytuff,PR,0,2014-11-14,2014,
+1509,XY - Primal Clash,PRC,0,2015-02-04,2015,https://images.pokemontcg.io/xy5/logo.png
+1525,Double Crisis,DCR,0,2015-03-25,2015,https://images.pokemontcg.io/dc1/logo.png
+1528,Jumbo Cards,PR,0,2015-04-01,2015,
+1536,XY Trainer Kit: Latias & Latios,PR,0,2015-04-29,2015,
+1534,XY - Roaring Skies,ROS,0,2015-05-06,2015,https://images.pokemontcg.io/xy6/logo.png
+1576,XY - Ancient Origins,AOR,0,2015-08-12,2015,https://images.pokemontcg.io/xy7/logo.png
+1661,XY - BREAKthrough,BKT,0,2015-11-04,2015,https://images.pokemontcg.io/xy8/logo.png
+1694,McDonald's Promos 2015,M15,0,2015-11-23,2015,
+1701,XY - BREAKpoint,BKP,0,2016-02-03,2016,https://images.pokemontcg.io/xy9/logo.png
+1728,Generations,GEN,0,2016-02-22,2016,https://images.pokemontcg.io/g1/logo.png
+1729,Generations: Radiant Collection,GEN,0,2016-02-22,2016,
+1796,XY Trainer Kit: Pikachu Libre & Suicune,PR,0,2016-04-27,2016,
+1780,XY - Fates Collide,FCO,0,2016-05-02,2016,https://images.pokemontcg.io/xy10/logo.png
+1539,League & Championship Cards,PR,0,2016-06-01,2016,
+1815,XY - Steam Siege,STS,0,2016-08-03,2016,https://images.pokemontcg.io/xy11/logo.png
+3087,McDonald's Promos 2016,M16,1,2016-08-05,2016,
+1840,Deck Exclusives,PR,0,2016-09-01,2016,
+1842,XY - Evolutions,EVO,0,2016-11-02,2016,https://images.pokemontcg.io/xy12/logo.png
+1861,SM Promos,SMP,0,2016-12-14,2016,
+1863,SM Base Set,SM01,0,2017-02-03,2017,
+23095,Ash vs Team Rocket Deck Kit (JP Exclusive),AVTR,0,2017-04-21,2017,
+2069,SM Trainer Kit: Lycanroc & Alolan Raichu,SMK1,0,2017-04-21,2017,
+1919,SM - Guardians Rising,SM02,0,2017-05-05,2017,https://images.pokemontcg.io/sm2/logo.png
+1957,SM - Burning Shadows,SM03,0,2017-08-04,2017,https://images.pokemontcg.io/sm3/logo.png
+2054,Shining Legends,SHL,0,2017-10-06,2017,https://images.pokemontcg.io/sm35/logo.png
+2071,SM - Crimson Invasion,SM04,0,2017-11-03,2017,https://images.pokemontcg.io/sm4/logo.png
+2148,McDonald's Promos 2017,M17,1,2017-11-07,2017,
+2178,SM - Ultra Prism,SM05,0,2018-02-02,2018,https://images.pokemontcg.io/sm5/logo.png
+2208,SM Trainer Kit: Alolan Sandslash & Alolan Ninetales,SMK2,1,2018-04-06,2018,
+2209,SM - Forbidden Light,SM06,0,2018-05-04,2018,https://images.pokemontcg.io/sm6/logo.png
+2282,World Championship Decks,WCD,0,2018-07-01,2018,
+2278,SM - Celestial Storm,CES,0,2018-08-03,2018,https://images.pokemontcg.io/sm7/logo.png
+2295,Dragon Majesty,DRM,0,2018-09-07,2018,https://images.pokemontcg.io/sm75/logo.png
+2328,SM - Lost Thunder,SM8,0,2018-11-02,2018,https://images.pokemontcg.io/sm8/logo.png
+2364,McDonald's Promos 2018,M18,1,2018-11-02,2018,
+2377,SM - Team Up,SM9,0,2019-02-01,2019,https://images.pokemontcg.io/sm9/logo.png
+2409,Detective Pikachu,DEP,0,2019-04-05,2019,https://images.pokemontcg.io/det1/logo.png
+2420,SM - Unbroken Bonds,SM10,0,2019-05-03,2019,https://images.pokemontcg.io/sm10/logo.png
+2464,SM - Unified Minds,SM11,0,2019-08-02,2019,https://images.pokemontcg.io/sm11/logo.png
+2480,Hidden Fates,HIF,0,2019-08-23,2019,https://images.pokemontcg.io/sm115/logo.png
+2594,Hidden Fates: Shiny Vault,HIF:SV,0,2019-08-23,2019,
+2555,McDonald's Promos 2019,M19,0,2019-10-01,2019,
+2534,SM - Cosmic Eclipse,SM12,0,2019-11-01,2019,https://images.pokemontcg.io/sm12/logo.png
+2545,SWSH: Sword & Shield Promo Cards,SWSD,0,2019-11-15,2019,
+2585,SWSH01: Sword & Shield Base Set,SWSH01,0,2020-02-07,2020,
+2626,SWSH02: Rebel Clash,SWSH02,0,2020-05-01,2020,https://images.pokemontcg.io/swsh2/logo.png
+2686,Battle Academy,BTA,1,2020-07-31,2020,
+2675,SWSH03: Darkness Ablaze,SWSH03,0,2020-08-14,2020,https://images.pokemontcg.io/swsh3/logo.png
+2685,Champion's Path,CHP,0,2020-09-25,2020,https://images.pokemontcg.io/swsh35/logo.png
+2701,SWSH04: Vivid Voltage,SWSH04,0,2020-11-13,2020,https://images.pokemontcg.io/swsh4/logo.png
+2782,McDonald's 25th Anniversary Promos,M21,1,2021-02-09,2021,
+2754,Shining Fates,SHF,0,2021-02-19,2021,https://images.pokemontcg.io/swsh45/logo.png
+2781,Shining Fates: Shiny Vault,SHFSV,0,2021-02-19,2021,
+2765,SWSH05: Battle Styles,SWSH05,0,2021-03-19,2021,https://images.pokemontcg.io/swsh5/logo.png
+2807,SWSH06: Chilling Reign,SWSH06,0,2021-06-18,2021,https://images.pokemontcg.io/swsh6/logo.png
+2848,SWSH07: Evolving Skies,SWSH07,0,2021-08-27,2021,https://images.pokemontcg.io/swsh7/logo.png
+2867,Celebrations,CLB,0,2021-10-08,2021,https://images.pokemontcg.io/cel25/logo.png
+2931,Celebrations: Classic Collection,CCC,0,2021-10-08,2021,
+2906,SWSH08: Fusion Strike,SWSH08,0,2021-11-12,2021,https://images.pokemontcg.io/swsh8/logo.png
+2948,SWSH09: Brilliant Stars,SWSH09,0,2022-02-25,2022,https://images.pokemontcg.io/swsh9/logo.png
+3020,SWSH09: Brilliant Stars Trainer Gallery,SWSH09:TG,0,2022-02-25,2022,https://images.pokemontcg.io/swsh9tg/logo.png
+3051,Battle Academy 2022,BA22,0,2022-04-01,2022,
+3040,SWSH10: Astral Radiance,SWSH10,0,2022-05-27,2022,https://images.pokemontcg.io/swsh10/logo.png
+3068,SWSH10: Astral Radiance Trainer Gallery,SWSH10:TG,0,2022-05-27,2022,https://images.pokemontcg.io/swsh10tg/logo.png
+3064,Pokemon GO,PGO,0,2022-07-01,2022,
+3150,McDonald's Promos 2022,M22,0,2022-08-03,2022,
+3179,Trick or Trade BOOster Bundle,TTBB,0,2022-09-01,2022,
+3118,SWSH11: Lost Origin,SWSH11,0,2022-09-09,2022,https://images.pokemontcg.io/swsh11/logo.png
+3172,SWSH11: Lost Origin Trainer Gallery,SWSH11: TG,0,2022-09-09,2022,https://images.pokemontcg.io/swsh11tg/logo.png
+3170,SWSH12: Silver Tempest,SWSH12,0,2022-11-11,2022,https://images.pokemontcg.io/swsh12/logo.png
+17674,SWSH12: Silver Tempest Trainer Gallery,SWSH12: TG,0,2022-11-11,2022,https://images.pokemontcg.io/swsh12tg/logo.png
+22880,Prize Pack Series Cards,,0,2022-11-30,2022,
+17688,SWSH: Crown Zenith,CRZ,0,2023-01-20,2023,https://images.pokemontcg.io/swsh12pt5/logo.png
+17689,SWSH: Crown Zenith: Galarian Gallery,CRZ:GG,0,2023-01-20,2023,
+22872,SV: Scarlet & Violet Promo Cards,SVP,0,2023-03-31,2023,
+22873,SV01: Scarlet & Violet Base Set,SVI,0,2023-03-31,2023,
+24382,SVE: Scarlet & Violet Energies,SVE,0,2023-03-31,2023,https://images.pokemontcg.io/sve/logo.png
+23120,SV02: Paldea Evolved,PAL,0,2023-06-09,2023,https://images.pokemontcg.io/sv2/logo.png
+23228,SV03: Obsidian Flames,OBF,0,2023-08-11,2023,https://images.pokemontcg.io/sv3/logo.png
+23266,Trick or Trade BOOster Bundle 2023,TTBB23,0,2023-09-01,2023,
+23306,McDonald's Promos 2023,M23,0,2023-09-12,2023,
+23237,SV: Scarlet & Violet 151,MEW,0,2023-09-22,2023,
+23330,My First Battle,,0,2023-09-29,2023,
+23286,SV04: Paradox Rift,PAR,0,2023-11-03,2023,https://images.pokemontcg.io/sv4/logo.png
+23323,Trading Card Game Classic,CL,0,2023-11-17,2023,
+23353,SV: Paldean Fates,PAF,0,2024-01-26,2024,https://images.pokemontcg.io/sv4pt5/logo.png
+23381,SV05: Temporal Forces,TEF,0,2024-03-22,2024,https://images.pokemontcg.io/sv5/logo.png
+23473,SV06: Twilight Masquerade,TWM,0,2024-05-24,2024,https://images.pokemontcg.io/sv6/logo.png
+23520,Battle Academy 2024,BA24,0,2024-06-21,2024,
+23529,SV: Shrouded Fable,SFA,0,2024-08-02,2024,https://images.pokemontcg.io/sv6pt5/logo.png
+23561,Trick or Trade BOOster Bundle 2024,TTBB24,0,2024-08-30,2024,
+23537,SV07: Stellar Crown,SCR,0,2024-09-13,2024,https://images.pokemontcg.io/sv7/logo.png
+23651,SV08: Surging Sparks,SSP,0,2024-11-08,2024,https://images.pokemontcg.io/sv8/logo.png
+23821,SV: Prismatic Evolutions,PRE,0,2025-01-17,2025,https://images.pokemontcg.io/sv8pt5/logo.png
+24163,McDonald's Promos 2024,M24,0,2025-01-21,2025,
+24073,SV09: Journey Together,JTG,0,2025-03-28,2025,https://images.pokemontcg.io/sv9/logo.png
+24269,SV10: Destined Rivals,DRI,0,2025-05-30,2025,https://images.pokemontcg.io/sv10/logo.png
+24325,SV: Black Bolt,BLK,0,2025-07-18,2025,https://images.pokemontcg.io/zsv10pt5/logo.png
+24326,SV: White Flare,WHT,0,2025-07-18,2025,https://images.pokemontcg.io/rsv10pt5/logo.png
+24451,ME: Mega Evolution Promo,MEP,0,2025-09-26,2025,
+24380,ME01: Mega Evolution,MEG,0,2025-09-26,2025,https://images.pokemontcg.io/me1/logo.png
+24461,MEE: Mega Evolution Energies,MEE,0,2025-09-26,2025,
+24448,ME02: Phantasmal Flames,PFL,0,2025-11-14,2025,https://images.pokemontcg.io/me2/logo.png
+24529,Player Placement Trainer Promos,,0,2026-01-02,2026,
+24541,ME: Ascended Heroes,ASC,0,2026-01-30,2026,https://images.scrydex.com/pokemon/me2pt5-logo/logo
+24587,ME03: Perfect Order,POR,0,2026-03-27,2026,https://images.scrydex.com/pokemon/me3-logo/logo
+24584,First Partner Collection 2026,,0,2026-03-30,2026,
+24655,ME04: Chaos Rising,CRI,0,2026-05-22,2026,https://images.scrydex.com/pokemon/me4-logo/logo
+24688,ME05: Pitch Black,PBL,0,2026-07-17,2026,https://images.scrydex.com/pokemon/me5-logo/logo
+1543,EX Trainer Kit 1: Latias & Latios,PR,0,2026-08-13,2026,
+1542,EX Trainer Kit 2: Plusle & Minun,PR,0,2026-08-13,2026,
+1423,Nintendo Promos,PR,0,2026-08-13,2026,
+1422,POP Series 1,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop1/logo.png
+1447,POP Series 2,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop2/logo.png
+1442,POP Series 3,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop3/logo.png
+1452,POP Series 4,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop4/logo.png
+1439,POP Series 5,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop5/logo.png
+1432,POP Series 6,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop6/logo.png
+1414,POP Series 7,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop7/logo.png
+1450,POP Series 8,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop8/logo.png
+1446,POP Series 9,POP,0,2026-08-13,2026,https://images.pokemontcg.io/pop9/logo.png
+1938,Alternate Art Promos,PR,1,2026-08-13,2026,
+2289,Blister Exclusives,BLE,1,2026-08-13,2026,
+2175,Burger King Promos,BKP,1,2026-08-13,2026,
+2776,First Partner Pack,FPP,1,2026-08-13,2026,
+2374,Miscellaneous Cards & Products,MCAP,1,2026-08-13,2026,
+2205,Pikachu World Collection Promos,PWCP,1,2026-08-13,2026,
+2332,Professor Program Promos,PPP,1,2026-08-13,2026,
+24722,ME: 30th Celebration,30C,0,2026-09-16,2026,

@@ -1,0 +1,97 @@
+/* Instant-search dropdown.
+   Colours are hard-coded to the DoubleSleeve dark palette rather than inherited,
+   so this renders correctly no matter which order the theme bundle loads it in —
+   an earlier version shipped a white panel because it lost the cascade. */
+
+.cc-search {
+  position: relative;
+}
+
+/* Hummingbird's built-in autocomplete opens a second dropdown over the same
+   input. This instant-search replaces it, so its container never shows. */
+.ps-searchbar__dropdown,
+.js-search-dropdown {
+  display: none !important;
+}
+
+.cc-search__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 980;
+  background: #121A2C;
+  border: 1px solid #253154;
+  border-radius: 14px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .55);
+  max-height: 26rem;
+  overflow: hidden auto;
+}
+
+.cc-search__hit {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: .7rem;
+  align-items: center;
+  padding: .55rem .85rem;
+  border-bottom: 1px solid #1B2440;
+  color: #EDF1FA;
+  text-decoration: none;
+}
+
+.cc-search__thumb {
+  width: 34px;
+  height: 46px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #0C111E;
+}
+.cc-search__thumb--empty { display: block; opacity: .35; }
+
+.cc-search__body {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  min-width: 0;
+}
+
+.cc-search__price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #EDF1FA;
+  font-size: .88rem;
+}
+
+.cc-search__hit:last-child { border-bottom: 0; }
+
+.cc-search__hit:hover,
+.cc-search__hit:focus {
+  background: #18223A;
+  text-decoration: none;
+  color: #EDF1FA;
+}
+
+.cc-search__type {
+  font-size: .64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #22D3EE;
+}
+
+.cc-search__name {
+  font-weight: 600;
+  color: #EDF1FA;
+}
+
+.cc-search__meta {
+  font-size: .78rem;
+  color: #6F7C9B;
+  text-align: right;
+}
+
+.cc-search__empty {
+  padding: .95rem;
+  color: #6F7C9B;
+  font-size: .9rem;
+}

@@ -1,0 +1,551 @@
+{
+ "singles": [
+  {
+   "productId": 567746,
+   "name": "Mew ex",
+   "number": "347/190",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567746_in_1000x1000.jpg",
+   "market": 511.88,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 567748,
+   "name": "Charizard ex",
+   "number": "349/190",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567748_in_1000x1000.jpg",
+   "market": 225.11,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 567747,
+   "name": "Gardevoir ex",
+   "number": "348/190",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567747_in_1000x1000.jpg",
+   "market": 148.67,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 567637,
+   "name": "Pikachu",
+   "number": "236/190",
+   "rarity": "Shiny Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567637_in_1000x1000.jpg",
+   "market": 47.92,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 567749,
+   "name": "Iono",
+   "number": "350/190",
+   "rarity": "",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567749_in_1000x1000.jpg",
+   "market": 34.37,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Normal"
+  },
+  {
+   "productId": 567666,
+   "name": "Mimikyu",
+   "number": "265/190",
+   "rarity": "Shiny Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567666_in_1000x1000.jpg",
+   "market": 21.34,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 567750,
+   "name": "Clive",
+   "number": "352/190",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567750_in_1000x1000.jpg",
+   "market": 21.16,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 567727,
+   "name": "Mew ex",
+   "number": "327/190",
+   "rarity": "Shiny Secret Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567727_in_1000x1000.jpg",
+   "market": 19.82,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 577337,
+   "name": "Cleffa - 077/190 (Mirror Holofoil)",
+   "number": "077/190",
+   "rarity": "",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/577337_in_1000x1000.jpg",
+   "market": 2.66,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 567654,
+   "name": "Abra",
+   "number": "253/190",
+   "rarity": "Shiny Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567654_in_1000x1000.jpg",
+   "market": 2.65,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 567516,
+   "name": "Charizard ex",
+   "number": "115/190",
+   "rarity": "Double Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/567516_in_1000x1000.jpg",
+   "market": 2.62,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 577408,
+   "name": "Arven - 180/190 (Mirror Holofoil)",
+   "number": "180/190",
+   "rarity": "",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/577408_in_1000x1000.jpg",
+   "market": 2.61,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571791,
+   "name": "Giratina VSTAR",
+   "number": "261/172",
+   "rarity": "Ultra Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571791_in_1000x1000.jpg",
+   "market": 285.13,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571743,
+   "name": "Pikachu",
+   "number": "205/172",
+   "rarity": "Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571743_in_1000x1000.jpg",
+   "market": 230.32,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571792,
+   "name": "Arceus VSTAR",
+   "number": "262/172",
+   "rarity": "Ultra Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571792_in_1000x1000.jpg",
+   "market": 173.64,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571759,
+   "name": "Mewtwo VSTAR",
+   "number": "221/172",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571759_in_1000x1000.jpg",
+   "market": 144.01,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571790,
+   "name": "Origin Forme Dialga VSTAR",
+   "number": "260/172",
+   "rarity": "Ultra Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571790_in_1000x1000.jpg",
+   "market": 108.49,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571750,
+   "name": "Charizard VSTAR",
+   "number": "212/172",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571750_in_1000x1000.jpg",
+   "market": 99.57,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571789,
+   "name": "Origin Forme Palkia VSTAR",
+   "number": "259/172",
+   "rarity": "Ultra Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571789_in_1000x1000.jpg",
+   "market": 93.71,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571748,
+   "name": "Leafeon VSTAR",
+   "number": "210/172",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571748_in_1000x1000.jpg",
+   "market": 65.96,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571727,
+   "name": "Solrock",
+   "number": "189/172",
+   "rarity": "Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571727_in_1000x1000.jpg",
+   "market": 2.95,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571726,
+   "name": "Galarian Zapdos",
+   "number": "188/172",
+   "rarity": "Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571726_in_1000x1000.jpg",
+   "market": 2.75,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 577444,
+   "name": "Magmar (Mirror Holofoil)",
+   "number": "016/172",
+   "rarity": "",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/577444_in_1000x1000.jpg",
+   "market": 2.74,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 571588,
+   "name": "Mewtwo V",
+   "number": "050/172",
+   "rarity": "Double Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/571588_in_1000x1000.jpg",
+   "market": 2.73,
+   "groupId": 23645,
+   "set": "VSTAR Universe",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 566791,
+   "name": "Gengar (Master Ball Pattern)",
+   "number": "094/165",
+   "rarity": "Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/566791_in_1000x1000.jpg",
+   "market": 632.09,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 566544,
+   "name": "Charizard ex",
+   "number": "201/165",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/566544_in_1000x1000.jpg",
+   "market": 395.71,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 577147,
+   "name": "Mew ex",
+   "number": "205/165",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/577147_in_1000x1000.jpg",
+   "market": 215.43,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 566545,
+   "name": "Blastoise ex",
+   "number": "202/165",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/566545_in_1000x1000.jpg",
+   "market": 154.03,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 566543,
+   "name": "Venusaur ex",
+   "number": "200/165",
+   "rarity": "Special Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/566543_in_1000x1000.jpg",
+   "market": 125.04,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 566439,
+   "name": "Gengar",
+   "number": "094/165",
+   "rarity": "Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/566439_in_1000x1000.jpg",
+   "market": 2.87,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 566351,
+   "name": "Charizard ex",
+   "number": "006/165",
+   "rarity": "Double Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/566351_in_1000x1000.jpg",
+   "market": 2.8,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 566637,
+   "name": "Haunter (Poke Ball Pattern)",
+   "number": "093/165",
+   "rarity": "Uncommon",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/566637_in_1000x1000.jpg",
+   "market": 2.75,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 566557,
+   "name": "Squirtle - 007/165 (Poke Ball Pattern)",
+   "number": "007/165",
+   "rarity": "Common",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/566557_in_1000x1000.jpg",
+   "market": 2.71,
+   "groupId": 23599,
+   "set": "Pokemon Card 151",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572846,
+   "name": "Sightseer",
+   "number": "192/173",
+   "rarity": "Super Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572846_in_1000x1000.jpg",
+   "market": 625.0,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572850,
+   "name": "Green's Exploration",
+   "number": "196/173",
+   "rarity": "Super Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572850_in_1000x1000.jpg",
+   "market": 462.62,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572844,
+   "name": "Erika's Hospitality",
+   "number": "190/173",
+   "rarity": "Super Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572844_in_1000x1000.jpg",
+   "market": 450.0,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572845,
+   "name": "Misty & Lorelei",
+   "number": "191/173",
+   "rarity": "Super Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572845_in_1000x1000.jpg",
+   "market": 400.07,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572840,
+   "name": "Togepi & Cleffa & Igglybuff GX",
+   "number": "186/173",
+   "rarity": "Super Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572840_in_1000x1000.jpg",
+   "market": 240.0,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572847,
+   "name": "Blue's Strategy",
+   "number": "193/173",
+   "rarity": "Super Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572847_in_1000x1000.jpg",
+   "market": 207.91,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572855,
+   "name": "Red's Challenge",
+   "number": "201/173",
+   "rarity": "Super Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572855_in_1000x1000.jpg",
+   "market": 194.66,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572872,
+   "name": "Eevee GX",
+   "number": "219/173",
+   "rarity": "Hyper Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572872_in_1000x1000.jpg",
+   "market": 164.2,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 572858,
+   "name": "Basic Water Energy",
+   "number": "204/173",
+   "rarity": "Super Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/572858_in_1000x1000.jpg",
+   "market": 2.9,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars",
+   "printing": "Holofoil"
+  },
+  {
+   "productId": 654108,
+   "name": "Haunter",
+   "number": "022/021",
+   "rarity": "Art Rare",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/654108_in_1000x1000.jpg",
+   "market": 25.36,
+   "groupId": 24444,
+   "set": "MEGA Starter Set Mega Gengar ex",
+   "printing": "Holofoil"
+  }
+ ],
+ "sealed": [
+  {
+   "productId": 565232,
+   "name": "Shiny Treasure ex High Class Booster Box",
+   "type": "Booster Boxes",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/565232_in_1000x1000.jpg",
+   "market": 143.68,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex"
+  },
+  {
+   "productId": 565233,
+   "name": "Shiny Treasure ex High Class Booster Pack",
+   "type": "Booster Packs",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/565233_in_1000x1000.jpg",
+   "market": 13.05,
+   "groupId": 23601,
+   "set": "Shiny Treasure ex"
+  },
+  {
+   "productId": 565252,
+   "name": "VSTAR Universe Booster Box",
+   "type": "Booster Boxes",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/565252_in_1000x1000.jpg",
+   "market": 228.22,
+   "groupId": 23645,
+   "set": "VSTAR Universe"
+  },
+  {
+   "productId": 565253,
+   "name": "VSTAR Universe Booster Pack",
+   "type": "Booster Packs",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/565253_in_1000x1000.jpg",
+   "market": 19.17,
+   "groupId": 23645,
+   "set": "VSTAR Universe"
+  },
+  {
+   "productId": 565242,
+   "name": "Pokemon Card 151 Booster Pack",
+   "type": "Booster Packs",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/565242_in_1000x1000.jpg",
+   "market": 17.97,
+   "groupId": 23599,
+   "set": "Pokemon Card 151"
+  },
+  {
+   "productId": 565243,
+   "name": "Pokemon Card 151 Booster Box",
+   "type": "Booster Boxes",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/565243_in_1000x1000.jpg",
+   "market": 326.66,
+   "groupId": 23599,
+   "set": "Pokemon Card 151"
+  },
+  {
+   "productId": 576963,
+   "name": "TAG TEAM GX: Tag All Stars Booster Pack",
+   "type": "Booster Packs",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/576963_in_1000x1000.jpg",
+   "market": 108.17,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars"
+  },
+  {
+   "productId": 576964,
+   "name": "TAG TEAM GX: Tag All Stars Booster Box",
+   "type": "Booster Boxes",
+   "image": "https://tcgplayer-cdn.tcgplayer.com/product/576964_in_1000x1000.jpg",
+   "market": 870.53,
+   "groupId": 23709,
+   "set": "TAG TEAM GX: Tag All Stars"
+  }
+ ]
+}

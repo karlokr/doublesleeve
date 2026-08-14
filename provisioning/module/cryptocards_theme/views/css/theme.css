@@ -1,0 +1,2481 @@
+/* ==========================================================================
+   DoubleSleeve design system
+   Neutral chrome on near-black, built to sit on top of Hummingbird.
+
+   The products are the colour. A page of Pokemon cards is already saturated
+   edge to edge, so the interface around them is greyscale and gets out of the
+   way; saturation is spent only where it carries meaning - the condition ramp,
+   the print-run signal, and stock state.
+   ========================================================================== */
+
+:root {
+  --cc-bg:            #0B0D10;
+  --cc-bg-alt:        #0F1216;
+  --cc-surface:       #14171C;
+  --cc-surface-2:     #1A1E25;
+  --cc-surface-3:     #232830;
+  --cc-border:        #262B33;
+  --cc-border-soft:   #1C2027;
+
+  --cc-text:          #E8EAED;
+  --cc-text-dim:      #9BA3AF;
+  --cc-text-faint:    #6E7681;
+
+  /* Meaning-bearing colour, and nothing else. */
+  /* Deliberately the SAME gold the print-run chip already uses. The chip keeps
+     its own pinned value below so a future repaint cannot move it, but there is
+     no reason for the chrome to carry a second, almost-identical gold. */
+  --cc-gold:          #FBBF24;
+  --cc-green:         #22C55E;   /* in stock  */
+  --cc-amber:         #F59E0B;   /* low stock */
+  --cc-red:           #EF4444;   /* out of stock, worst condition */
+
+  /**
+   * The accent is near-WHITE, not a hue: a white button on near-black is the
+   * strongest affordance available without introducing a colour that competes
+   * with the card art. Anything sitting ON it needs --cc-accent-ink.
+   */
+  --cc-accent:      #F4F5F7;
+  --cc-accent-ink:  #0B0D10;
+  --cc-accent-soft: rgba(244, 245, 247, .10);
+  --cc-accent-line: rgba(244, 245, 247, .26);
+
+  /**
+   * Chip colours are pinned to their OWN tokens rather than derived from the
+   * accent. They encode facts about a card, they were signed off separately, and
+   * repainting the chrome must not quietly move them.
+   */
+  --cc-chip-printing:      #C4B5FD;
+  --cc-chip-printing-soft: rgba(139, 124, 246, .14);
+  --cc-chip-printing-line: rgba(139, 124, 246, .42);
+  --cc-chip-run:           #FBBF24;
+  --cc-chip-run-soft:      rgba(251, 191, 36, .12);
+  --cc-chip-run-line:      rgba(251, 191, 36, .50);
+
+  /* Foil sweep, reserved for the wordmark alone: silver into gold, the way a
+     holo border actually catches light - not a rainbow. */
+  --cc-holo: linear-gradient(115deg, #FFFFFF 0%, #C9CDD4 44%, var(--cc-gold) 100%);
+  --cc-holo-soft: linear-gradient(115deg, rgba(255,255,255,.10), rgba(224,179,65,.10));
+
+  --cc-radius:    14px;
+  --cc-radius-sm: 9px;
+  --cc-shadow:    0 18px 44px rgba(0, 0, 0, .5);
+  --cc-ring:      0 0 0 1px var(--cc-border);
+}
+
+/* ------------------------------------------------- bootstrap variables --- */
+/* Hummingbird is Bootstrap 5, and every component we have NOT explicitly styled
+   falls back to Bootstrap's light-theme tokens - #212529 text on #fff. That is
+   why the sort dropdown rendered white and the listing count was near-black on a
+   near-black page. Rebinding the tokens themselves fixes the whole surface at
+   once, instead of chasing one selector at a time. */
+:root,
+[data-bs-theme="light"] {
+  --bs-body-color: #E8EAED;
+  --bs-body-color-rgb: 232, 234, 237;
+  --bs-body-bg: #0B0D10;
+  --bs-body-bg-rgb: 11, 13, 16;
+  --bs-emphasis-color: #FFFFFF;
+  --bs-emphasis-color-rgb: 255, 255, 255;
+  --bs-secondary-color: rgba(232, 234, 237, .72);
+  --bs-secondary-bg: #1A1E25;
+  --bs-tertiary-color: rgba(232, 234, 237, .56);
+  --bs-tertiary-bg: #14171C;
+  /* The .bg-body-* utilities resolve through the -rgb triplets, not the hex
+     tokens, and they carry !important - so rebinding these is the only override
+     that survives regardless of stylesheet load order. */
+  --bs-secondary-bg-rgb: 26, 30, 37;
+  --bs-tertiary-bg-rgb: 20, 23, 28;
+  --bs-border-color: #262B33;
+  --bs-border-color-translucent: rgba(255, 255, 255, .12);
+  --bs-heading-color: #E8EAED;
+  --bs-link-color: #E8EAED;
+  --bs-link-color-rgb: 232, 234, 237;
+  --bs-link-hover-color: #FFFFFF;
+  --bs-code-color: var(--cc-gold);
+  --bs-highlight-bg: rgba(224, 179, 65, .22);
+}
+
+/* Bootstrap's outline buttons hardcode the light "tertiary" pair; the sort and
+   per-page dropdowns are the visible casualties. */
+.btn-outline-tertiary,
+.products__sort-dropdown-button,
+.products__per-page-dropdown-button {
+  background-color: var(--cc-surface-2) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text) !important;
+  border-radius: 999px !important;
+  font-weight: 600;
+}
+.btn-outline-tertiary:hover,
+.products__sort-dropdown-button:hover,
+.products__per-page-dropdown-button:hover {
+  background-color: var(--cc-surface-3) !important;
+  color: var(--cc-text) !important;
+  border-color: var(--cc-accent-line) !important;
+}
+
+/* Stock Hummingbird stretches the sort control to fill its grid column, so a
+   one-word label like "Relevance" sat 300px from its own caret. Size to content
+   and keep the row right-aligned. */
+.products__sort { justify-content: flex-end; align-items: center; gap: .5rem; }
+.products__sort-dropdown-button {
+  width: auto !important;
+  min-width: 0 !important;
+  gap: .5rem;
+  padding: .4rem .95rem !important;
+  font-size: .86rem;
+}
+/* The results line is removed: after tile expansion it could only ever restate
+   what the grid already shows, and it pushed the first row further down. */
+.products__count { display: none !important; }
+
+/* PrestaShop renders the active-filters bar even with nothing in it, leaving an
+   empty rounded panel above the grid. theme.js also sets [hidden] on it, but this
+   catches the pre-JS paint so it never flashes. */
+#js-active-search-filters:empty { display: none !important; }
+#js-active-search-filters[hidden] { display: none !important; }
+
+/* The results line ("There are 24 listings across 12 cards.") inherits the body
+   token, so it only needed the bridge above - but it also sat too faint to read
+   as the summary of the page it heads. */
+#js-product-list-header,
+.products__header-text,
+.search-filters__slider-values,
+.product-list-comments-number {
+  color: var(--cc-text-dim) !important;
+}
+
+/* --------------------------------------------------------------- base --- */
+body,
+body#checkout,
+#wrapper,
+.page-wrapper,
+main {
+  background: var(--cc-bg) !important;
+  color: var(--cc-text);
+}
+
+body {
+  font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ambient holo glow so the page never reads as flat black. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(900px 480px at 12% -8%, rgba(255, 255, 255, .045), transparent 60%),
+    radial-gradient(820px 420px at 88% -12%, rgba(224, 179, 65, .035), transparent 62%);
+}
+
+/* Stacking order. The header must outrank page content or the mega menu and the
+   search dropdown render *underneath* category panels and product cards — those
+   create their own stacking contexts via position/transform. */
+#wrapper > * { position: relative; }
+.header.js-sticky-header,
+.header {
+  position: relative;
+  z-index: 900 !important;
+}
+.footer { position: relative; z-index: 1; }
+
+.submenu,
+.js-sub-menu { z-index: 940 !important; }
+
+.cc-search__panel { z-index: 980 !important; }
+
+/* Nothing inside the page body may climb over the header. */
+.columns-container,
+#content-wrapper,
+.category__header,
+.product-miniature,
+.cc-hero,
+.cc-tiles { z-index: 1; }
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4 { color: var(--cc-text); font-weight: 700; letter-spacing: -.015em; }
+
+/* Links carry no hue of their own; brightening to white is the hover state.
+
+   They are NOT underlined globally. Underlining every link put a rule directly
+   under the words in the nav bar, on top of the 2px indicator each menu item
+   already animates in - two underlines per item, in two different styles - and it
+   underlined the wordmark. An underline is right for a link buried in a sentence
+   and wrong for anything that is already obviously a control. */
+a { color: var(--cc-text); text-decoration: none; }
+a:hover { color: #FFFFFF; }
+
+/* Prose is where a link genuinely needs the underline: inside a paragraph there is
+   nothing else marking it out. */
+.rich-text a:hover,
+.page-content a:hover,
+#cms .page-content a:hover,
+.product__description a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+p, li, span, label, dd, dt, td, th { color: inherit; }
+.text-muted, small, .small { color: var(--cc-text-dim) !important; }
+
+hr { border-color: var(--cc-border-soft); opacity: 1; }
+
+::selection { background: rgba(244, 245, 247, .26); color: #fff; }
+
+/* Scrollbars, so even the chrome matches. */
+* { scrollbar-color: var(--cc-surface-3) transparent; scrollbar-width: thin; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--cc-surface-3); border-radius: 20px; }
+*::-webkit-scrollbar-thumb:hover { background: var(--cc-border); }
+
+/* ------------------------------------------------------------- header --- */
+.header,
+.header-top,
+.header-bottom {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.header {
+  background: linear-gradient(180deg, rgba(8, 11, 20, .96), rgba(8, 11, 20, .82)) !important;
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--cc-border-soft) !important;
+}
+
+.header-top {
+  border-bottom: 1px solid var(--cc-border-soft) !important;
+  font-size: .82rem;
+}
+
+.header-top a,
+.header-top .header-block,
+.header-top span { color: var(--cc-text-dim) !important; }
+.header-top a:hover { color: var(--cc-text) !important; }
+
+.header-bottom { padding-block: .35rem; }
+
+/* Wordmark: replaces the placeholder logo image with a foil wordmark. */
+.header-bottom__logo img,
+.header__logo img { display: none !important; }
+
+.header-bottom__logo a::after,
+.header__logo a::after {
+  content: "DoubleSleeve";
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  background: var(--cc-holo);
+  /* Wider than the text so there is somewhere to slide it to on hover. */
+  background-size: 260% 100%;
+  background-position: 0% 50%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  white-space: nowrap;
+  transition: background-position .55s ease;
+}
+
+/* Hover slides the foil sweep across the letters, the way tilting a holo card
+   moves the shine. A wordmark is not a sentence, so it never gets an underline. */
+.header-bottom__logo a:hover::after,
+.header__logo a:hover::after { background-position: 100% 50%; }
+.header-bottom__logo a:hover,
+.header__logo a:hover { text-decoration: none; }
+
+.header-block__action-btn,
+.header-block__icon,
+.header-block a { color: var(--cc-text-dim) !important; }
+.header-block a:hover,
+.header-block__action-btn:hover { color: var(--cc-text) !important; }
+
+.material-icons { color: inherit; }
+
+/* Cart pill */
+.blockcart .header-block__action-btn {
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  border-radius: 999px;
+  padding: .38rem .8rem !important;
+}
+.blockcart .cart-products-count { color: var(--cc-accent) !important; font-weight: 700; }
+
+/* Language / currency selects */
+.header select,
+.header .form-select,
+select.form-select {
+  background-color: var(--cc-surface-2) !important;
+  color: var(--cc-text) !important;
+  border: 1px solid var(--cc-border) !important;
+  border-radius: 999px;
+  font-size: .82rem;
+  padding: .3rem 2rem .3rem .8rem;
+}
+select option { background: var(--cc-surface-2); color: var(--cc-text); }
+
+/* ---------------------------------------------------------------- nav --- */
+.ps-mainmenu__tree { gap: .15rem; }
+
+.ps-mainmenu__tree-link {
+  color: var(--cc-text-dim) !important;
+  font-weight: 600;
+  font-size: .95rem;
+  padding: .55rem .85rem !important;
+  border-radius: var(--cc-radius-sm);
+  position: relative;
+  transition: color .18s ease, background .18s ease;
+}
+
+.ps-mainmenu__tree-link:hover,
+.ps-mainmenu__tree-item.current .ps-mainmenu__tree-link {
+  color: var(--cc-text) !important;
+  background: var(--cc-surface-2);
+}
+
+/* Foil underline on hover */
+/**
+ * The active-item indicator hangs off the LINK, not the wrapper.
+ *
+ * The wrapper also contains the dropdown chevron, and only some items have one:
+ * "Pokémon" measures 122px (96 of link plus a 26px toggle) while "Browse Pokémon
+ * Sets" measures 191px of link alone. A bar inset a fixed amount from the WRAPPER
+ * therefore ran under the chevron on one item and hugged the text on the other, so
+ * the two underlines were visibly different objects. Anchored to the link, both
+ * span exactly their own label.
+ *
+ * The link already pads its text by .85rem, so the same inset lines the bar up with
+ * the first and last letter.
+ */
+.ps-mainmenu__tree-item-wrapper { position: relative; }
+.ps-mainmenu__tree-link {
+  position: relative;
+}
+.ps-mainmenu__tree-link::after {
+  content: "";
+  position: absolute;
+  left: .85rem; right: .85rem; bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--cc-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .22s ease;
+}
+.ps-mainmenu__tree-item:hover > .ps-mainmenu__tree-item-wrapper > .ps-mainmenu__tree-link::after,
+.ps-mainmenu__tree-item:focus-within > .ps-mainmenu__tree-item-wrapper > .ps-mainmenu__tree-link::after {
+  transform: scaleX(1);
+}
+
+/* The page you are on keeps its indicator without needing to be hovered. */
+.ps-mainmenu__tree-item.current > .ps-mainmenu__tree-item-wrapper > .ps-mainmenu__tree-link::after {
+  transform: scaleX(1);
+}
+
+.ps-mainmenu__tree-dropdown-toggle { color: var(--cc-text-faint) !important; }
+
+/* Mega menu panel */
+.submenu,
+.js-sub-menu {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border) !important;
+  border-radius: 0 0 var(--cc-radius) var(--cc-radius);
+  box-shadow: var(--cc-shadow) !important;
+  padding-block: 1.25rem !important;
+}
+
+.submenu__left { border-right: 1px solid var(--cc-border-soft); }
+
+.submenu__left-item {
+  display: block;
+  color: var(--cc-text-dim) !important;
+  font-weight: 600;
+  padding: .55rem .85rem;
+  border-radius: var(--cc-radius-sm);
+  transition: background .16s ease, color .16s ease;
+}
+.submenu__left-item:hover,
+.submenu__left-item[aria-selected="true"] {
+  background: var(--cc-surface-2);
+  color: var(--cc-text) !important;
+}
+
+.menu-item,
+.submenu a { color: var(--cc-text-dim) !important; }
+.submenu a:hover { color: var(--cc-accent) !important; }
+
+.menu__group-main-item,
+.submenu__group-main-item {
+  color: var(--cc-text) !important;
+  font-weight: 700 !important;
+  font-size: .82rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* Mobile offcanvas */
+.ps-mainmenu--mobile,
+.offcanvas { background: var(--cc-bg-alt) !important; color: var(--cc-text); }
+.menu__list li a { color: var(--cc-text-dim) !important; }
+.menu__title { color: var(--cc-text) !important; }
+
+/* ------------------------------------------------------------- search --- */
+.ps-searchbar__form { position: relative; }
+
+/* Generic fields: dark, but no pill shape or icon padding — those belong to the
+   search box alone. Applying them globally deformed every quantity input. */
+input.form-control,
+textarea.form-control,
+select.form-control {
+  background: var(--cc-surface-2) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text) !important;
+  border-radius: var(--cc-radius-sm);
+}
+
+.ps-searchbar__input {
+  border-radius: 999px !important;
+  padding-left: 2.6rem !important;
+  height: 44px;
+}
+
+.ps-searchbar__input::placeholder,
+input.form-control::placeholder { color: var(--cc-text-faint) !important; }
+
+.ps-searchbar__input:focus,
+input.form-control:focus {
+  outline: none !important;
+  border-color: var(--cc-accent) !important;
+  box-shadow: 0 0 0 3px rgba(244, 245, 247, .14) !important;
+}
+
+.ps-searchbar__magnifier { color: var(--cc-text-faint) !important; z-index: 3; }
+
+/* Instant-search dropdown (module: cryptocards_search) */
+.cc-search__panel {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border) !important;
+  border-radius: var(--cc-radius) !important;
+  box-shadow: var(--cc-shadow) !important;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.cc-search__hit { border-bottom: 1px solid var(--cc-border-soft) !important; padding: .7rem .9rem !important; }
+.cc-search__hit:hover { background: var(--cc-surface-2) !important; }
+.cc-search__type {
+  color: var(--cc-accent) !important;
+  font-weight: 700;
+  font-size: .64rem !important;
+}
+.cc-search__name { color: var(--cc-text) !important; }
+.cc-search__meta,
+.cc-search__empty { color: var(--cc-text-faint) !important; }
+
+/* ---------------------------------------------------------- containers --- */
+.columns-container,
+#content-wrapper,
+.page-content,
+.card,
+.block-category { background: transparent !important; border: 0 !important; }
+
+.breadcrumb__wrapper,
+.breadcrumb {
+  background: transparent !important;
+  border: 0 !important;
+  padding-left: 0 !important;
+}
+.breadcrumb a { color: var(--cc-text-faint) !important; font-size: .84rem; }
+.breadcrumb a:hover { color: var(--cc-accent) !important; }
+.breadcrumb li::after { color: var(--cc-text-faint); }
+
+/* ------------------------------------------------------------ category --- */
+/* A set name like "Base Set (Shadowless)" was eating a full banner. The header
+   is now a single row: small set logo, title, and blurb - the grid starts within
+   one screenful instead of below the fold. */
+.category__header {
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--cc-border-soft) !important;
+  border-radius: 0;
+  padding: .2rem 0 .8rem !important;
+  margin-bottom: 1rem;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+  flex-wrap: wrap;
+}
+.category__header h1,
+#category-description h1 {
+  margin: 0;
+  font-size: 1.3rem;
+  letter-spacing: -.02em;
+  line-height: 1.2;
+}
+/* The blurb rides alongside the title, separated by a hairline, rather than
+   forcing a second stacked block. */
+.category__header p {
+  color: var(--cc-text-dim) !important;
+  margin: 0;
+  font-size: .85rem;
+  line-height: 1.4;
+  flex: 1 1 22ch;
+  min-width: 0;
+  padding-left: .9rem;
+  border-left: 1px solid var(--cc-border-soft);
+}
+@media (max-width: 767px) {
+  .category__header p { flex-basis: 100%; padding-left: 0; border-left: 0; }
+}
+
+/* Subcategory chips */
+.category-tree__item-link,
+#subcategories .subcategory-name {
+  display: inline-block;
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  color: var(--cc-text-dim) !important;
+  border-radius: 999px;
+  padding: .34rem .8rem;
+  font-size: .85rem;
+  font-weight: 600;
+  transition: all .16s ease;
+}
+.category-tree__item-link:hover {
+  color: var(--cc-text) !important;
+  border-color: var(--cc-accent);
+  background: var(--cc-surface-3);
+}
+.category-tree__list { display: flex; flex-wrap: wrap; gap: .45rem; padding-left: 0; list-style: none; }
+.category-tree__item { list-style: none; }
+
+/* The in-header subcategory list (release years under Singles, product types
+   under Sealed) ships as stacked full-width blocks - nearly 250px of chrome
+   before the first product. As a wrapped chip row it is one or two lines. */
+.category__header .subcategory { flex: 1 1 100%; min-width: 0; }
+.subcategory__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  padding-left: 0;
+  list-style: none;
+  margin: 0;
+}
+.subcategory__link {
+  display: inline-flex;
+  align-items: center;
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  border-radius: 999px;
+  padding: .28rem .7rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--cc-text-dim) !important;
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.subcategory__link:hover {
+  background: var(--cc-surface-3);
+  border-color: var(--cc-accent-line);
+  color: var(--cc-text) !important;
+}
+.subcategory__link img,
+.subcategory__thumbnail { display: none; }
+.subcategory__name { color: inherit !important; font: inherit; }
+
+/* --------------------------------------------------- active filter bar --- */
+/* The rail itself is styled in the "filter sidebar" section further down. This
+   block used to style it too, at a different padding and with a border-bottom on
+   EVERY option row - fourteen facets of hairlines, which is most of why the rail
+   read as noise. Only the pieces that are not the rail remain here. */
+#js-active-search-filters,
+.block-categories {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border) !important;
+  border-radius: var(--cc-radius);
+  padding: 1.1rem 1.15rem !important;
+  color: var(--cc-text);
+}
+
+.search-filters__link:hover,
+.facet-label:hover { color: var(--cc-accent) !important; }
+
+.accordion,
+.accordion-item,
+.accordion-button,
+.accordion-body,
+.accordion-collapse {
+  background: transparent !important;
+  border-color: var(--cc-border-soft) !important;
+  color: var(--cc-text) !important;
+  box-shadow: none !important;
+}
+.accordion-button::after { filter: invert(1) opacity(.5); }
+.accordion-button:not(.collapsed) { color: var(--cc-text) !important; }
+
+/* Checkboxes */
+.form-check-input {
+  background-color: var(--cc-surface-3) !important;
+  border-color: var(--cc-border) !important;
+}
+/* A checked box is now near-white, and Bootstrap's tick is white too - so the
+   tick has to be re-drawn dark or it disappears into the box it is sitting in. */
+.form-check-input:checked {
+  background-color: var(--cc-accent) !important;
+  border-color: var(--cc-accent) !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%230B0D10' stroke-linecap='round' stroke-linejoin='round' stroke-width='3.5' d='m6 10 3 3 6-6'/%3e%3c/svg%3e") !important;
+}
+.form-check-input:focus {
+  border-color: var(--cc-accent) !important;
+  box-shadow: 0 0 0 3px rgba(244, 245, 247, .14) !important;
+}
+
+/* Price slider */
+.ui-slider,
+.noUi-target { background: var(--cc-surface-3) !important; border: 0 !important; }
+.ui-slider-range,
+.noUi-connect { background: var(--cc-accent) !important; }
+.ui-slider-handle,
+.noUi-handle { background: #fff !important; border: 0 !important; border-radius: 50% !important; box-shadow: 0 2px 8px rgba(0,0,0,.5) !important; }
+
+/* Active filter chips */
+.active-filters .filter-block,
+.js-search-filters-clear-all,
+.active-filters ul li {
+  background: var(--cc-surface-2) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text-dim) !important;
+  border-radius: 999px;
+}
+
+/* ------------------------------------------------------- product card --- */
+.products,
+#js-product-list .products {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 1.1rem;
+}
+
+.product-miniature {
+  width: auto !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.product-miniature__inner {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius);
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+}
+
+/* Foil edge that lights up on hover */
+.product-miniature__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--cc-accent);
+  opacity: 0;
+  transition: opacity .2s ease;
+  z-index: 2;
+}
+
+.product-miniature:hover .product-miniature__inner {
+  transform: translateY(-4px);
+  border-color: var(--cc-surface-3);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, .55);
+}
+.product-miniature:hover .product-miniature__inner::before { opacity: 1; }
+
+.product-miniature__image-container {
+  background: radial-gradient(120% 90% at 50% 0%, var(--cc-surface-3), var(--cc-bg-alt)) !important;
+  /* Card art is the whole point of a TCG listing, so it gets the space. Padding
+     is trimmed and the frame raised from 210px to 300px - roughly a 40% larger
+     image in the same grid, because the tile was mostly chrome before. */
+  padding: .5rem .5rem .35rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* FIXED, not min-height. Card scans vary in aspect, so a min-height let each
+     tile's frame grow to its own image - 215px next to 226px - and every element
+     below inherited the offset. That was the mobile misalignment: the chips were
+     already uniform, the frames were not. */
+  height: 300px;
+}
+
+.product-miniature__image {
+  max-height: 300px;
+  width: auto !important;
+  object-fit: contain;
+  /* Scans are trimmed to the card edge, but the corners are rounded on white.
+     Matching that radius clips the white notches that otherwise glow against
+     the dark tile. */
+  border-radius: 9px;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .55));
+  transition: transform .25s ease;
+}
+.product-miniature:hover .product-miniature__image { transform: scale(1.05); }
+
+.product-miniature__infos,
+.product-miniature__bottom {
+  background: transparent !important;
+  padding: .8rem .9rem !important;
+}
+.product-miniature__infos { flex: 1; }
+
+.product-miniature__title,
+.product-miniature__title a {
+  color: var(--cc-text) !important;
+  font-size: .88rem !important;
+  font-weight: 600;
+  line-height: 1.35;
+  display: block;
+  overflow: hidden;
+}
+
+/* Card name leads; set and collector number follow in a quieter second line. */
+.cc-title__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--cc-text);
+}
+.cc-title__meta {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: .74rem;
+  font-weight: 500;
+  color: var(--cc-text-faint);
+  margin-top: .1rem;
+}
+a.product-miniature__title:hover .cc-title__name,
+.product-miniature__title a:hover .cc-title__name { color: var(--cc-accent) !important; }
+.product-miniature__title a:hover { color: var(--cc-accent) !important; }
+
+.product-miniature__prices,
+.product-miniature__price {
+  color: var(--cc-text) !important;
+  font-weight: 800 !important;
+  font-size: 1.06rem !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+
+.product-miniature__discount-price,
+.regular-price { color: var(--cc-text-faint) !important; text-decoration: line-through; font-size: .82rem !important; }
+
+/* Flags / badges */
+.product-flags { position: absolute; top: .6rem; left: .6rem; z-index: 3; padding: 0; margin: 0; }
+.product-flags .badge,
+.product-flags li {
+  background: rgba(8, 11, 20, .82) !important;
+  border: 1px solid var(--cc-border);
+  color: var(--cc-text) !important;
+  backdrop-filter: blur(6px);
+  border-radius: 999px;
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  padding: .28rem .6rem;
+}
+.product-flags .badge.new { color: var(--cc-text) !important; border-color: var(--cc-accent-line); }
+/* A price cut is worth one of the few colours we spend. */
+.product-flags .badge.on-sale,
+.product-flags .badge.discount { color: var(--cc-gold) !important; border-color: rgba(224, 179, 65, .45); }
+
+/* Rarity + condition chips injected by theme.js */
+/*
+ * Chip height is PINNED, and the row reserves space for its worst case.
+ *
+ * Left to size themselves, a chip whose label exactly fills the tile width
+ * ("1st Edition Holofoil" is 142px in a 142px column at 412px viewport) rendered
+ * 25px tall while a shorter one rendered 23px. Three chips turned that into a 4px
+ * difference, which pushed the title and price of adjacent tiles out of line -
+ * the misalignment visible on mobile.
+ */
+.cc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: .3rem;
+  margin-bottom: .45rem;
+  /* Three rows + two gaps: three chips is the maximum, and at some tile widths
+     each one takes a line of its own. Reserving only two rows meant a tile with a
+     long printing label ("1st Edition Holofoil") grew a third line and pushed its
+     title and price out of line with the tile beside it. */
+  min-height: calc(3 * 1.45rem + 2 * .3rem);
+}
+.cc-chip {
+  font-size: .63rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  padding: .2rem .5rem;
+  border-radius: 999px;
+  border: 1px solid var(--cc-border);
+  color: var(--cc-text-dim);
+  background: var(--cc-surface-2);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: .32rem;
+  /* Fixed box so identical chip counts always produce identical row heights. */
+  height: 1.45rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+/* Condition is the one chip where colour earns its place - it is an ordered
+   scale, so a buyer reads NM vs DMG at a glance. But five saturated pills per
+   card turned the grid into a rainbow, so the hue is demoted to a small dot and
+   the pill itself stays neutral. */
+.cc-chip--cond::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+/* An ordered ramp, green to red, so the dot alone reads as "how good is this
+   one" without parsing the grade name. The bottom end is a true red rather than
+   the rose it used to be: Damaged is the worst thing a card can be, and rose read
+   as a softer warning than Heavily Played's orange sitting right above it.
+   Assigned by attribute POSITION, so the ramp is right in any language. */
+.cc-chip--nm  { --cc-dot: #22C55E; }   /* Near Mint        */
+.cc-chip--lp  { --cc-dot: #A3E635; }   /* Lightly Played   */
+.cc-chip--mp  { --cc-dot: #FACC15; }   /* Moderately Played*/
+.cc-chip--hp  { --cc-dot: #F97316; }   /* Heavily Played   */
+.cc-chip--dmg { --cc-dot: #EF4444; }   /* Damaged          */
+.cc-chip--cond::before { background: var(--cc-dot, var(--cc-text-faint)); }
+
+/* The dot is the only colour on the chip, so it has to survive a dark tile. */
+.cc-chip--cond::before { box-shadow: 0 0 0 2px color-mix(in srgb, var(--cc-dot, transparent) 22%, transparent); }
+
+/* Printing is what separates one tile from the next (1st Edition vs Unlimited),
+   so it alone keeps a tinted treatment. */
+.cc-chip--printing,
+.cc-chip--holo {
+  color: var(--cc-chip-printing);
+  border-color: var(--cc-chip-printing-line);
+  background: var(--cc-chip-printing-soft);
+}
+
+/* Rarity is reference data, not a decision driver. Neutral. */
+.cc-chip--rare,
+.cc-chip--rarity { color: var(--cc-text-dim); }
+
+/* Card language: always present on every line, so it must read as information and
+   never as a warning. Slightly brighter than rarity because it IS part of the
+   card's identity, not a description of it. */
+.cc-chip--language {
+  color: var(--cc-text);
+  border-color: var(--cc-border-strong, var(--cc-border));
+}
+
+/* Chips on a cart or checkout line.
+   The tile rule reserves three rows so neighbouring tiles stay aligned; a cart line
+   has no neighbour to align with, and reserving the space there just pushed the
+   price away from the name. */
+.cc-chips--line {
+  min-height: 0;
+  margin: .35rem 0 .15rem;
+}
+
+/* Buttons */
+.btn-primary,
+.product-miniature__add,
+.add-to-cart,
+button.btn-primary {
+  background: var(--cc-accent) !important;
+  border: 0 !important;
+  color: var(--cc-accent-ink) !important;
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  letter-spacing: .01em;
+  transition: filter .18s ease, transform .18s ease;
+}
+/* brightness(1.12) on a near-WHITE button is a no-op - the hover state simply
+   stopped existing when the accent stopped being a mid-tone violet. Dim instead. */
+.btn-primary:hover,
+.product-miniature__add:hover,
+.add-to-cart:hover { filter: brightness(.88); transform: translateY(-1px); }
+
+.btn-secondary,
+.btn-outline-primary,
+.btn-tertiary {
+  background: var(--cc-surface-2) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text) !important;
+  border-radius: 999px !important;
+}
+.btn-secondary:hover { border-color: var(--cc-accent) !important; }
+
+.product-miniature__quickview-button,
+.product-miniature__quickview-touch {
+  background: rgba(8, 11, 20, .78) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text) !important;
+  border-radius: 999px !important;
+  backdrop-filter: blur(6px);
+}
+
+/* Sort / per-page dropdowns */
+.products-selection,
+.sort-by-row,
+.products-sort-order .select-title,
+.dropdown-menu {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text) !important;
+  border-radius: var(--cc-radius-sm);
+}
+.dropdown-item { color: var(--cc-text-dim) !important; }
+.dropdown-item:hover { background: var(--cc-surface-2) !important; color: var(--cc-text) !important; }
+
+/* Pagination */
+.pagination .page-link {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text-dim) !important;
+  border-radius: var(--cc-radius-sm);
+  margin: 0 .15rem;
+}
+.pagination .page-item.active .page-link,
+.pagination .page-link:hover {
+  background: var(--cc-surface-3) !important;
+  color: var(--cc-text) !important;
+  border-color: var(--cc-accent) !important;
+}
+
+/* -------------------------------------------------------- product page --- */
+.product-container,
+.product-information,
+.product-actions,
+.product-prices,
+.tabs,
+.product-tabs { background: transparent !important; color: var(--cc-text); }
+
+.product-cover,
+.product-images img,
+.js-qv-product-cover {
+  background: radial-gradient(120% 90% at 50% 0%, var(--cc-surface-3), var(--cc-bg-alt)) !important;
+  border: 1px solid var(--cc-border) !important;
+  border-radius: var(--cc-radius);
+}
+
+.product-price,
+.current-price span,
+.product-prices .current-price {
+  color: var(--cc-text) !important;
+  font-weight: 800;
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.product-variants,
+.product-add-to-cart,
+.product-quantity,
+.product-additional-info {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1rem;
+}
+
+.product-variants__label,
+.product-variants label,
+.control-label { color: var(--cc-text-dim) !important; font-weight: 600; }
+
+.nav-tabs { border-bottom: 1px solid var(--cc-border) !important; }
+.nav-tabs .nav-link { color: var(--cc-text-dim) !important; border: 0 !important; font-weight: 600; }
+.nav-tabs .nav-link.active {
+  color: var(--cc-text) !important;
+  background: transparent !important;
+  border-bottom: 2px solid var(--cc-accent) !important;
+}
+
+/* Spec tables (Product Details / Data sheet).
+   The theme fills every row, which on a dark surface reads as one solid slab with
+   no visible structure. Strip the fill, give the block one border and hairline row
+   dividers, and make the label/value contrast do the work instead. */
+.details__list,
+.product-features,
+.data-sheet {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius-sm);
+  overflow: hidden;
+  background: var(--cc-surface);
+}
+
+.details__item,
+.product-features li,
+.data-sheet .data-sheet__item {
+  display: grid;
+  /* Content-sized label column so "Regulation Mark" never wraps to two lines. */
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem;
+  align-items: baseline;
+  margin: 0 !important;
+  padding: .6rem .9rem !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--cc-border-soft) !important;
+}
+
+.details__item:last-child,
+.product-features li:last-child { border-bottom: 0 !important; }
+
+/* Subtle banding aids scanning without the blocky look. */
+.details__item:nth-child(even),
+.product-features li:nth-child(even) { background: rgba(255, 255, 255, .018) !important; }
+
+.details__left,
+.details__title,
+.product-features li .name,
+.data-sheet dt {
+  color: var(--cc-text-faint) !important;
+  font-weight: 500 !important;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.details__right,
+.details__right span,
+.product-features li .value,
+.data-sheet dd {
+  color: var(--cc-text) !important;
+  font-weight: 600;
+  font-size: .92rem;
+}
+
+/* Reference is an identifier - monospace so digits line up and it reads as a code. */
+.details__item--reference .details__right span {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: .85rem;
+  letter-spacing: .01em;
+  color: var(--cc-accent) !important;
+}
+
+.details__item--quantities .details__right span { color: var(--cc-green) !important; }
+
+.accordion-body { padding: .85rem 0 1.2rem !important; }
+
+/* Stray rule the theme drops under the tab block. */
+#product-details + hr,
+.product-tabs hr,
+.accordion + hr { display: none; }
+
+table, .table { color: var(--cc-text-dim) !important; }
+.table > :not(caption) > * > * { background: transparent !important; border-color: var(--cc-border-soft) !important; }
+
+/* --------------------------------------------------------------- hero --- */
+.cc-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, var(--cc-surface) 0%, var(--cc-bg-alt) 100%);
+  border: 1px solid var(--cc-border);
+  border-radius: 22px;
+  padding: 3.6rem 2.4rem 2.4rem;
+  margin: 1.75rem 0 1.5rem;
+  text-align: center;
+}
+
+.cc-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: var(--cc-border);
+}
+
+/* Soft foil bloom behind the headline. */
+.cc-hero__glow {
+  position: absolute;
+  top: -45%;
+  left: 50%;
+  width: 780px;
+  height: 620px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgba(255, 255, 255, .10), transparent 72%);
+  filter: blur(18px);
+  pointer-events: none;
+}
+
+.cc-hero > *:not(.cc-hero__glow) { position: relative; z-index: 1; }
+
+.cc-hero__eyebrow {
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--cc-accent) !important;
+  margin-bottom: .9rem;
+}
+
+.cc-hero__title {
+  font-size: clamp(2rem, 4.6vw, 3.5rem);
+  line-height: 1.05;
+  letter-spacing: -.035em;
+  font-weight: 800;
+  margin: 0 auto .9rem;
+  /* No max-width: the break is placed deliberately below, and a character cap
+     fights it - 16ch was wrapping "Sleeved twice, sold / once." mid-phrase. */
+}
+
+/**
+ * The foil half always starts its own line, and never breaks inside itself.
+ *
+ * Left inline it wrapped wherever the column ran out, so the headline read
+ * "Sleeved twice, sold" / "once." - the break landing mid-phrase and the foil
+ * gradient splitting across two lines with it. Both halves are written to be read
+ * as units, so the line break is part of the copy, not a side effect of the width.
+ */
+.cc-hero__foil {
+  display: block;
+  white-space: nowrap;
+  background: var(--cc-holo);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cc-hero__sub {
+  color: var(--cc-text-dim) !important;
+  max-width: 62ch;
+  margin: 0 auto 1.7rem;
+  font-size: 1.02rem;
+  line-height: 1.6;
+}
+
+.cc-hero__actions {
+  display: flex;
+  gap: .65rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2.4rem;
+}
+
+.cc-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: .72rem 1.45rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: .93rem;
+  transition: transform .16s ease, filter .16s ease, border-color .16s ease;
+}
+.cc-btn:hover { transform: translateY(-2px); }
+
+.cc-btn--primary {
+  background: var(--cc-accent);
+  color: var(--cc-accent-ink) !important;
+}
+.cc-btn--primary:hover { filter: brightness(.88); color: var(--cc-accent-ink) !important; }
+
+.cc-btn--ghost {
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  color: var(--cc-text) !important;
+}
+.cc-btn--ghost:hover { border-color: var(--cc-accent); color: var(--cc-text) !important; }
+
+.cc-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  list-style: none;
+  padding: 1.5rem 0 0;
+  margin: 0;
+  border-top: 1px solid var(--cc-border-soft);
+}
+.cc-stats li { display: flex; flex-direction: column; gap: .2rem; }
+.cc-stats strong {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--cc-text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+.cc-stats span {
+  font-size: .74rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--cc-text-faint) !important;
+}
+
+/* -------------------------------------------------------------- tiles --- */
+.cc-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.cc-tile {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 148px;
+  padding: 1.2rem;
+  border-radius: var(--cc-radius);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface);
+  transition: transform .18s ease, border-color .18s ease;
+}
+.cc-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: .22;
+  transition: opacity .18s ease;
+}
+/* Four tiles that used to be four different hues. They are distinguished by
+   their label and their artwork; the glow just lifts them off the page. */
+.cc-tile--singles::before,
+.cc-tile--sealed::before,
+.cc-tile--graded::before,
+.cc-tile--sets::before { background: radial-gradient(120% 100% at 20% 0%, rgba(255,255,255,.55), transparent 62%); }
+
+.cc-tile:hover { transform: translateY(-3px); border-color: var(--cc-surface-3); }
+.cc-tile:hover::before { opacity: .38; }
+
+.cc-tile__label {
+  position: relative;
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: var(--cc-text) !important;
+  letter-spacing: -.02em;
+}
+.cc-tile__meta {
+  position: relative;
+  font-size: .8rem;
+  color: var(--cc-text-dim) !important;
+}
+
+/* ----------------------------------------------- set directory (CMS) --- */
+#cms .page-content h2,
+.cms-page h2 {
+  font-size: 1.15rem;
+  margin-top: 2rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--cc-border-soft);
+}
+#cms .page-content h2 small { color: var(--cc-text-faint) !important; font-weight: 500; }
+
+#cms .page-content ul,
+.cms-page ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: .55rem;
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+}
+#cms .page-content ul li,
+.cms-page ul li { list-style: none; }
+#cms .page-content ul li a,
+.cms-page ul li a {
+  display: block;
+  padding: .7rem .9rem;
+  background: var(--cc-surface);
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius-sm);
+  color: var(--cc-text-dim) !important;
+  font-size: .88rem;
+  font-weight: 600;
+  transition: all .16s ease;
+}
+#cms .page-content ul li a:hover,
+.cms-page ul li a:hover {
+  color: var(--cc-text) !important;
+  border-color: var(--cc-accent);
+  background: var(--cc-surface-2);
+  transform: translateY(-2px);
+}
+
+/* The era jump-nav is a plain paragraph of links; make it a chip row. */
+#cms .page-content > p:nth-of-type(2) a {
+  display: inline-block;
+  padding: .25rem .65rem;
+  margin: .12rem;
+  border-radius: 999px;
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  font-size: .8rem;
+  color: var(--cc-text-dim) !important;
+}
+#cms .page-content > p:nth-of-type(2) a:hover { border-color: var(--cc-accent); color: var(--cc-text) !important; }
+
+/* ------------------------------------------------- featured products --- */
+.featured-products,
+.products-section-title,
+h2.products-section-title {
+  color: var(--cc-text) !important;
+  text-align: left;
+  font-size: 1.3rem;
+  letter-spacing: -.02em;
+  margin-bottom: 1rem;
+}
+
+/* --------------------------------------------------------------- misc --- */
+/* Bootstrap background utilities are light by definition and the theme sprinkles
+   them around (the newsletter ships as .bg-body-tertiary). Left alone they punch
+   white rectangles through a dark page. */
+.bg-body-tertiary,
+.bg-body-secondary,
+.bg-body,
+.bg-light,
+.bg-white {
+  background-color: var(--cc-surface) !important;
+  color: var(--cc-text) !important;
+}
+
+.block-newsletter,
+.footer__before,
+.ps-emailsubscription {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius);
+  margin: 2.5rem auto;
+  padding: 1.6rem !important;
+}
+.block-newsletter h3,
+.footer__before h3,
+.ps-emailsubscription .h3,
+.ps-emailsubscription p { color: var(--cc-text) !important; }
+.ps-emailsubscription small,
+.ps-emailsubscription .form-text { color: var(--cc-text-dim) !important; }
+
+.footer,
+.footer__main {
+  background: var(--cc-bg-alt) !important;
+  border-top: 1px solid var(--cc-border-soft) !important;
+  color: var(--cc-text-dim);
+}
+.footer-block__title,
+.footer h3 {
+  color: var(--cc-text) !important;
+  font-size: .78rem !important;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-weight: 700;
+}
+.footer a { color: var(--cc-text-dim) !important; font-size: .88rem; }
+.footer a:hover { color: var(--cc-accent) !important; }
+.copyright { color: var(--cc-text-faint) !important; border-top: 1px solid var(--cc-border-soft); }
+
+.alert,
+.alert-info,
+.alert-warning {
+  background: var(--cc-surface-2) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text) !important;
+  border-radius: var(--cc-radius-sm);
+}
+
+/* Sidebar category tree: presented as a panel, and the "Home" heading relabelled
+   to something that means anything to a shopper. */
+.ps-categorytree.left-block {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius);
+  padding: 1.1rem 1.15rem !important;
+  margin-bottom: 1.1rem;
+}
+
+.left-block__title { margin-bottom: .7rem !important; }
+.left-block__title-link { font-size: 0 !important; }
+.left-block__title-link::after {
+  content: "Browse";
+  font-size: .78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--cc-text) !important;
+}
+
+.ps-categorytree .category-tree__list { display: block; }
+.ps-categorytree .category-tree__item-link {
+  display: block;
+  border-radius: var(--cc-radius-sm);
+  border-color: transparent;
+  background: transparent;
+  padding: .4rem .6rem;
+}
+.ps-categorytree .category-tree__item-link:hover { background: var(--cc-surface-2); }
+
+/* ------------------------------------------------- set / print-run badges --- */
+/* The badges belong to the title, so they sit tight beneath it and keep clear
+   space before the price rather than floating midway between the two. */
+.product__name,
+.product-information h1 { margin-bottom: .3rem !important; }
+
+/* Badge line under the product title.
+   Deliberately the SAME chip vocabulary as the listing tiles and the cart, not a
+   parallel one: two visual languages for the same five facts meant a card looked
+   like a different kind of object depending on which page you were on. */
+.cc-setline {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: .3rem;
+  margin: 0 0 1.1rem;
+  min-height: 0;
+}
+
+/* The set is the identity of the line - the only one that reads at full strength. */
+.cc-chip--set { color: var(--cc-text); }
+
+/* ------------------------------------------------------------ stock box --- */
+.cc-stock {
+  display: flex;
+  gap: .6rem;
+  margin: .9rem 0 1.1rem;
+}
+
+.cc-stock > span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: .12rem;
+  padding: .65rem .85rem;
+  border-radius: var(--cc-radius-sm);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface);
+  font-weight: 700;
+  font-size: .98rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--cc-text);
+}
+
+.cc-stock small {
+  font-weight: 500;
+  font-size: .7rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--cc-text-faint) !important;
+}
+
+.cc-stock__variant--ok { color: var(--cc-green); border-color: rgba(52, 211, 153, .35); }
+.cc-stock__variant--low { color: var(--cc-gold); border-color: rgba(251, 191, 36, .35); }
+.cc-stock__variant--out { color: var(--cc-red); border-color: rgba(251, 113, 133, .35); }
+
+/* ------------------------------------------------------ serialised copies --- */
+.cc-copies { margin: -.4rem 0 1.1rem; }
+
+.cc-copies__note {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+  margin: 0;
+  padding: .6rem .85rem;
+  border-radius: var(--cc-radius-sm);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface);
+  color: var(--cc-text-dim) !important;
+  font-size: .88rem;
+}
+
+/* One in stock and photographed: the listing IS that card. */
+.cc-copies__note--exact {
+  border-color: rgba(52, 211, 153, .45);
+  background: rgba(52, 211, 153, .07);
+  color: var(--cc-text) !important;
+}
+
+.cc-copies__note small { color: var(--cc-text-faint) !important; font-size: .76rem; }
+
+.cc-copies__uid {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .82rem;
+  color: var(--cc-accent);
+  letter-spacing: .04em;
+}
+
+.cc-copies__picker {
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius-sm);
+  background: var(--cc-surface);
+  padding: .55rem .85rem;
+}
+.cc-copies__picker summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--cc-text);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.cc-copies__badge {
+  font-size: .66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: .18rem .5rem;
+  border-radius: 999px;
+  background: var(--cc-surface-3);
+  color: var(--cc-text-dim);
+}
+
+.cc-copies__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: .5rem;
+  margin-top: .75rem;
+}
+.cc-copies__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .25rem;
+  padding: .35rem;
+  border-radius: var(--cc-radius-sm);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-bg-alt);
+  cursor: pointer;
+  transition: border-color .16s ease, transform .16s ease;
+}
+.cc-copies__item:hover { border-color: var(--cc-accent-line); transform: translateY(-2px); }
+.cc-copies__item[aria-pressed="true"] { border-color: var(--cc-accent); box-shadow: 0 0 0 2px rgba(244,245,247,.22); }
+.cc-copies__item img { width: 100%; border-radius: 4px; }
+.cc-copies__item span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .66rem;
+  color: var(--cc-text-faint);
+}
+
+.cc-copies__hint { margin: .6rem 0 0; font-size: .76rem; color: var(--cc-text-faint) !important; }
+
+/* ------------------------------------------------- quantity + add to cart --- */
+/* One segmented pill for −/qty/+, and a round icon button for the cart. The
+   theme's defaults render three separate mismatched controls. */
+.product-miniature__actions,
+.product-miniature__form {
+  display: flex !important;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+}
+
+.quantity-button,
+.quantity-button__group {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.quantity-button__group {
+  display: inline-flex !important;
+  align-items: center;
+  height: 38px;
+  background: var(--cc-surface-2) !important;
+  border: 1px solid var(--cc-border) !important;
+  border-radius: 999px !important;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+
+.quantity-button__group .btn,
+.quantity-button__group .btn-square-icon {
+  width: 32px !important;
+  height: 36px !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--cc-text-dim) !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+}
+.quantity-button__group .btn:hover { background: var(--cc-surface-3) !important; color: var(--cc-accent) !important; }
+.quantity-button__group .btn .material-icons { font-size: 17px; }
+
+.quantity-button__group input.form-control,
+.quantity-button__group input {
+  width: 34px !important;
+  min-width: 0 !important;
+  height: 36px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--cc-text) !important;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: none !important;
+}
+
+/* Round add-to-cart, icon only on cards. */
+.product-miniature__add {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+.product-miniature__add .material-icons { font-size: 19px; }
+.product-miniature__add-text,
+.product-miniature__add span:not(.material-icons) {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* Product page keeps a full-width labelled button. */
+.product-add-to-cart .add-to-cart {
+  width: auto;
+  min-height: 44px;
+  padding-inline: 1.5rem !important;
+}
+.product-quantity .quantity-button__group { height: 44px; }
+.product-quantity .quantity-button__group .btn { height: 42px !important; width: 38px !important; }
+.product-quantity .quantity-button__group input { height: 42px !important; width: 44px !important; }
+
+/* Trust blocks under the product */
+.block-reassurance {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius);
+  padding: .35rem .9rem !important;
+}
+.block-reassurance li { border-bottom: 1px solid var(--cc-border-soft) !important; }
+.block-reassurance li:last-child { border-bottom: 0 !important; }
+.block-reassurance p,
+.block-reassurance span { color: var(--cc-text) !important; font-weight: 600; font-size: .9rem; }
+.block-reassurance .block-reassurance-item span:last-child,
+.block-reassurance small { color: var(--cc-text-dim) !important; font-weight: 400; }
+.block-reassurance img,
+.block-reassurance svg { filter: invert(1) brightness(1.6) saturate(0); opacity: .75; }
+
+/* Category images (set logos) */
+.category__header img,
+.category-cover img,
+#category .category-cover img {
+  border-radius: var(--cc-radius-sm);
+  border: 1px solid var(--cc-border);
+  max-height: 38px;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+/* Modals / quickview */
+.modal-content,
+.modal-header,
+.modal-body,
+.modal-footer {
+  background: var(--cc-surface) !important;
+  border-color: var(--cc-border) !important;
+  color: var(--cc-text) !important;
+}
+.btn-close { filter: invert(1) opacity(.6); }
+
+/* Cart dropdown */
+.cart-preview .cart-dropdown,
+.blockcart-dropdown {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text) !important;
+}
+
+/* Empty-category message */
+#js-product-list-top + .alert,
+.no-product-message { color: var(--cc-text-dim) !important; }
+
+@media (max-width: 767px) {
+  .products, #js-product-list .products { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .7rem; }
+  /* Two columns at 375px leaves ~165px per tile; a card at 0.717 aspect wants
+     about 215px of height, so the frame is sized to the art rather than cropping
+     it into a letterbox. */
+  .product-miniature__image-container { height: 215px; padding: .4rem .4rem .3rem !important; }
+  .product-miniature__image { max-height: 215px; }
+
+}
+
+/* ------------------------------------------------------- set directory --- */
+/* The "Browse Pokemon Sets" page. Its one hard rule: every set tile occupies
+   exactly the same space, whether it has a logo, a wordmark plate, or a long
+   two-line name. Only 114 of 217 sets have artwork, so a layout that sized
+   itself to its contents was guaranteed to look ragged. */
+.cc-sets__intro {
+  color: var(--cc-text-dim) !important;
+  max-width: 68ch;
+  margin: 0 0 1.25rem;
+}
+
+.cc-sets__jump {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+  padding: 0 0 1.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--cc-border-soft);
+}
+.cc-sets__jump-label {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--cc-text-faint) !important;
+  margin-right: .3rem;
+}
+.cc-sets__jump-link {
+  display: inline-flex;
+  align-items: center;
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  border-radius: 999px;
+  padding: .26rem .68rem;
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--cc-text-dim) !important;
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.cc-sets__jump-link:hover {
+  background: var(--cc-surface-3);
+  border-color: var(--cc-accent-line);
+  color: var(--cc-text) !important;
+}
+
+.cc-sets__era { margin-bottom: 2.25rem; scroll-margin-top: 90px; }
+
+.cc-sets__era-head {
+  display: flex;
+  align-items: baseline;
+  gap: .75rem;
+  flex-wrap: wrap;
+  margin-bottom: .85rem;
+}
+.cc-sets__era-title { margin: 0; font-size: 1.15rem; letter-spacing: -.02em; }
+.cc-sets__era-title a { color: var(--cc-text) !important; }
+.cc-sets__era-title a:hover { color: var(--cc-accent) !important; }
+.cc-sets__era-meta {
+  font-size: .8rem;
+  color: var(--cc-text-faint) !important;
+  white-space: nowrap;
+}
+
+/* auto-fill (not auto-fit) so a short era keeps tile width instead of stretching
+   three cards across the full row. */
+.cc-sets__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+  gap: .7rem;
+}
+
+.cc-set {
+  display: flex;
+  flex-direction: column;
+  background: var(--cc-surface);
+  border: 1px solid var(--cc-border-soft);
+  border-radius: var(--cc-radius-sm);
+  padding: .7rem;
+  color: var(--cc-text) !important;
+  transition: border-color .18s ease, background .18s ease, transform .18s ease;
+}
+/* The card background must NOT change on hover. Logos are JPEGs flattened onto
+   --cc-surface, so any other backdrop turns their corners into visible
+   rectangles. Hover reads through the border and lift instead. */
+.cc-set:hover {
+  border-color: var(--cc-accent-line);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .45);
+  color: var(--cc-text) !important;
+}
+
+/* Art area: reserved space only. No background and no border of its own - it used
+   to paint a second box inside the card, which together with the letterboxing
+   baked into the old JPEGs made every logo look tiny and double-framed. */
+.cc-set__art {
+  display: block;
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  margin-bottom: .5rem;
+  overflow: hidden;
+}
+/* width AND height at 100% with object-fit:contain. Sizing the image with
+   max-height alone let tall logos (POP Series is 300x367) win against the box's
+   aspect-ratio - which is a soft constraint - and those nine tiles grew 70px
+   taller than the rest. Filling the box and letting object-fit do the scaling
+   makes blow-out impossible. */
+.cc-set__logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* Plate needs the same fixed box, so lettering centres where art would sit. */
+.cc-set__plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+/* Typographic stand-in for the 103 sets with no artwork. Sized to read as a
+   deliberate wordmark rather than a placeholder in an empty frame. */
+.cc-set__plate {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: var(--cc-text-dim) !important;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.1;
+}
+
+/* Two lines reserved always, so a one-line name does not shorten its tile. */
+.cc-set__name {
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1.3;
+  min-height: 2.6em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cc-set__meta {
+  margin-top: .3rem;
+  font-size: .72rem;
+  color: var(--cc-text-faint) !important;
+}
+/* Stock is the one thing worth colouring here - it is why you'd click. */
+.cc-set--stocked { border-color: var(--cc-border); }
+.cc-set--stocked .cc-set__meta { color: var(--cc-green) !important; font-weight: 600; }
+
+@media (max-width: 480px) {
+  .cc-sets__grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
+/* Set directory filter bar (injected by theme.js - CMS content cannot ship JS). */
+.cc-sets__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .6rem;
+  margin: 0 0 1.5rem;
+}
+.cc-sets__search { flex: 1 1 260px; min-width: 0; margin: 0; }
+.cc-sets__search-input {
+  width: 100%;
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  border-radius: 999px;
+  padding: .48rem 1rem;
+  font-size: .88rem;
+  color: var(--cc-text);
+}
+.cc-sets__search-input::placeholder { color: var(--cc-text-faint); }
+.cc-sets__search-input:focus {
+  outline: none;
+  border-color: var(--cc-accent-line);
+  box-shadow: 0 0 0 3px var(--cc-accent-soft);
+}
+.cc-sets__toggle {
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  border-radius: 999px;
+  padding: .48rem 1.05rem;
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--cc-text-dim);
+  cursor: pointer;
+  transition: background .16s ease, border-color .16s ease, color .16s ease;
+}
+.cc-sets__toggle:hover { color: var(--cc-text); border-color: var(--cc-accent-line); }
+.cc-sets__toggle.is-on {
+  background: var(--cc-accent);
+  border-color: transparent;
+  color: var(--cc-accent-ink);
+}
+.cc-sets__result { font-size: .82rem; color: var(--cc-text-faint); }
+
+/* Hiding uses [hidden], which Bootstrap's display rules would otherwise lose. */
+.cc-set[hidden],
+.cc-sets__era[hidden],
+.cc-sets__jump-link[hidden] { display: none !important; }
+.cc-sets__empty {
+  color: var(--cc-text-dim) !important;
+  background: var(--cc-surface);
+  border: 1px solid var(--cc-border-soft);
+  border-radius: var(--cc-radius-sm);
+  padding: 1.1rem 1.25rem;
+  margin: 0;
+  font-size: .9rem;
+}
+.cc-sets__empty[hidden] { display: none !important; }
+
+/* Print-run chip. Base Set is the only set with a parallel run, and the price gap
+   between the two is several-fold, so it gets a louder treatment than the
+   informational chips beside it. */
+.cc-chip--shadowless {
+  color: var(--cc-chip-run) !important;
+  border-color: var(--cc-chip-run-line);
+  background: var(--cc-chip-run-soft);
+}
+.cc-chip--shadowed {
+  color: var(--cc-text-dim) !important;
+  border-color: var(--cc-border);
+  background: var(--cc-surface-3);
+}
+
+/* Printing has ONE colour. 1st Edition and Unlimited had their own, which made
+   1st Edition look identical to Shadowless - two unrelated facts in the same amber
+   - and the classes were assigned from a translated label, so they never applied in
+   French. The edition is now a data attribute, not a colour. */
+/* Should never appear. If it does, a SKU in an edition-split set is mislabelled. */
+.cc-chip--noedition {
+  color: var(--cc-red) !important;
+  border-color: rgba(251, 113, 133, .55);
+  background: rgba(251, 113, 133, .12);
+}
+
+
+/* ------------------------------------------------------- filter sidebar --- */
+/*
+ * ONE panel, one border. Hummingbird nests three containers here:
+ *
+ *   #search_filters_wrapper.ps-facetedsearch   <- outer column
+ *     #_desktop_faceted
+ *       #search-filters.search-filters         <- the actual panel
+ *
+ * Styling more than one of them as a card is what produced the box-inside-a-box.
+ * The outer wrapper is the column, so it stays transparent; the inner panel is
+ * the surface. Note the id is search-filters with a HYPHEN - an earlier pass used
+ * #search_filters throughout, which matched nothing at all.
+ */
+#search_filters_wrapper,
+#_desktop_faceted {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+
+#search-filters,
+.search-filters {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border-soft) !important;
+  border-radius: var(--cc-radius);
+  padding: .5rem .25rem .35rem !important;
+}
+
+/* "Filter By" */
+.left-block__title,
+.search-filters__title {
+  font-size: .74rem !important;
+  font-weight: 700;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  color: var(--cc-text-faint) !important;
+  padding: .5rem 1rem .35rem;
+  margin: 0 !important;
+}
+
+/* --- facet heading ------------------------------------------------------- */
+.search-filters .accordion-item,
+#search-filters .accordion-item {
+  border: 0 !important;
+  background: transparent !important;
+}
+/* Hairline between facets instead of a card around each - the rail should read
+   as one list, not fourteen stacked panels. */
+.search-filters .accordion-item + .accordion-item,
+#search-filters .accordion-item + .accordion-item {
+  border-top: 1px solid var(--cc-border-soft) !important;
+}
+
+.search-filters .accordion-button,
+#search-filters .accordion-button {
+  background: transparent !important;
+  color: var(--cc-text) !important;
+  font-size: .9rem !important;
+  font-weight: 600 !important;
+  padding: .62rem 1rem !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+.search-filters .accordion-button:hover,
+#search-filters .accordion-button:hover { color: var(--cc-accent) !important; }
+.search-filters .accordion-button::after,
+#search-filters .accordion-button::after {
+  filter: invert(1) brightness(1.8);
+  opacity: .45;
+  width: .9rem;
+  height: .9rem;
+  background-size: .9rem;
+}
+.search-filters .accordion-button:not(.collapsed)::after,
+#search-filters .accordion-button:not(.collapsed)::after { opacity: .8; }
+
+/* --- option rows --------------------------------------------------------- */
+.search-filters ul.accordion-body,
+#search-filters ul.accordion-body {
+  max-height: 14.5rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 .75rem .6rem !important;
+  list-style: none;
+}
+.search-filters ul.accordion-body > li,
+#search-filters ul.accordion-body > li { list-style: none; }
+.search-filters ul.accordion-body > li[hidden],
+#search-filters ul.accordion-body > li[hidden] { display: none !important; }
+
+/* The row is the target, not the 16px box inside it. */
+.search-filters .search-filters__form-check,
+#search-filters .search-filters__form-check {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  padding: .3rem .4rem;
+  border-radius: 7px;
+  margin: 0;
+  min-height: 0;
+  transition: background .14s ease;
+}
+.search-filters .search-filters__form-check:hover,
+#search-filters .search-filters__form-check:hover { background: var(--cc-surface-2); }
+
+.search-filters .search-filters__form-label,
+#search-filters .search-filters__form-label {
+  display: flex !important;
+  align-items: center;
+  gap: .4rem;
+  flex: 1;
+  margin: 0;
+  font-size: .855rem;
+  line-height: 1.3;
+  color: var(--cc-text-dim) !important;
+  cursor: pointer;
+}
+.search-filters .search-filters__form-check:hover .search-filters__form-label,
+#search-filters .search-filters__form-check:hover .search-filters__form-label {
+  color: var(--cc-text) !important;
+}
+.search-filters .search-filters__form-label a,
+#search-filters .search-filters__form-label a { color: inherit !important; }
+
+.search-filters input[type="checkbox"],
+#search-filters input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  border: 1.5px solid var(--cc-border);
+  border-radius: 4px;
+  background: var(--cc-bg-alt);
+  cursor: pointer;
+  position: relative;
+  transition: background .14s ease, border-color .14s ease;
+}
+.search-filters input[type="checkbox"]:hover,
+#search-filters input[type="checkbox"]:hover { border-color: var(--cc-accent-line); }
+.search-filters input[type="checkbox"]:checked,
+#search-filters input[type="checkbox"]:checked {
+  background: var(--cc-accent) !important;
+  border-color: var(--cc-accent) !important;
+}
+.search-filters input[type="checkbox"]:checked::after,
+#search-filters input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 4.5px; top: 1px;
+  width: 4px; height: 8px;
+  border: solid var(--cc-accent-ink);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.search-filters input[type="checkbox"]:focus-visible,
+#search-filters input[type="checkbox"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--cc-accent-soft);
+}
+
+/* "(132)" is context; it must not compete with the value. */
+.search-filters .magnitude,
+#search-filters .magnitude {
+  color: var(--cc-text-faint) !important;
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- type-to-filter box, injected by theme.js on facets over 10 rows ------ */
+.cc-facet__search { position: relative; margin: 0 .75rem .4rem; }
+.cc-facet__search-input {
+  width: 100%;
+  background: var(--cc-bg-alt);
+  border: 1px solid var(--cc-border);
+  border-radius: 999px;
+  padding: .32rem .75rem;
+  font-size: .8rem;
+  color: var(--cc-text);
+}
+.cc-facet__search-input::placeholder { color: var(--cc-text-faint); }
+.cc-facet__search-input:focus {
+  outline: none;
+  border-color: var(--cc-accent-line);
+  box-shadow: 0 0 0 3px var(--cc-accent-soft);
+}
+.cc-facet__search-empty {
+  display: block;
+  padding: .3rem .2rem 0;
+  font-size: .8rem;
+  color: var(--cc-text-faint);
+}
+.cc-facet__search-empty[hidden] { display: none !important; }
+
+/* A facet that cannot express a choice is noise. */
+.accordion-item[hidden] { display: none !important; }
+
+/* Availability with a single option ("In stock", because nothing is out of
+   stock) filters nothing. theme.js also sets [hidden], but doing it in CSS as
+   well means it never paints before the script runs, and it still works with JS
+   disabled. :has() counts the options - a second <li> means the facet can
+   actually express a choice, so it stays. */
+.accordion-item[data-type="availability"]:not(:has(ul.accordion-body > li:nth-child(2))) {
+  display: none !important;
+}
+
+/* --- price slider -------------------------------------------------------- */
+.search-filters__slider-container,
+#search-filters .search-filters__slider-container { padding: .3rem 1rem .8rem !important; }
+
+/* --- clear all ----------------------------------------------------------- */
+.search-filters .js-search-filters-clear-all,
+#search-filters .js-search-filters-clear-all {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  background: var(--cc-surface-2) !important;
+  border: 1px solid var(--cc-border) !important;
+  color: var(--cc-text-dim) !important;
+  border-radius: 999px !important;
+  font-size: .78rem !important;
+  padding: .28rem .75rem !important;
+  margin: 0 1rem .45rem;
+}
+.search-filters .js-search-filters-clear-all:hover,
+#search-filters .js-search-filters-clear-all:hover {
+  color: var(--cc-text) !important;
+  border-color: var(--cc-accent-line) !important;
+}
+
+/* --- the BROWSE / category panel above the filters --------------------- */
+/*
+ * Fully expanded this lists Pokemon > Singles > 15 eras > Sealed > Graded >
+ * Accessories > Supplies. At the stock 43px row height that is ~860px of
+ * navigation sitting on top of the filters, which is what pushed everything
+ * useful below the fold. Rows are tightened to ~28px and the whole tree is
+ * capped and scrollable, so opening a branch can no longer take over the column.
+ */
+.ps-categorytree,
+.left-block .block-categories {
+  background: var(--cc-surface) !important;
+  border: 1px solid var(--cc-border-soft) !important;
+  border-radius: var(--cc-radius);
+  padding: .35rem .3rem .45rem !important;
+  margin-bottom: 1rem;
+}
+
+.ps-categorytree .accordion--category {
+  max-height: 17rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ps-categorytree .category-tree__list { padding-left: 0; margin: 0; list-style: none; }
+.ps-categorytree .category-tree__item { list-style: none; border: 0 !important; }
+
+.ps-categorytree .category-tree__item-header {
+  display: flex;
+  align-items: center;
+  gap: .2rem;
+  border: 0 !important;
+  border-radius: 7px;
+  min-height: 0 !important;
+  transition: background .14s ease;
+}
+.ps-categorytree .category-tree__item-header:hover { background: var(--cc-surface-2); }
+
+.ps-categorytree .category-tree__item-link {
+  flex: 1;
+  padding: .3rem .5rem !important;
+  font-size: .855rem !important;
+  line-height: 1.25;
+  color: var(--cc-text-dim) !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.ps-categorytree .category-tree__item-header:hover .category-tree__item-link { color: var(--cc-text) !important; }
+
+/* The branch you are actually in should be findable at a glance. */
+.ps-categorytree .category-tree__item.active > .category-tree__item-header > .category-tree__item-link,
+.ps-categorytree .category-tree__item-link.current {
+  color: var(--cc-text) !important;
+  font-weight: 600;
+}
+
+/* Nested levels indent, but only slightly - four levels of Bootstrap indent ate
+   half the column width. */
+.ps-categorytree .category-tree__child .category-tree__list { padding-left: .6rem; }
+
+/* Chevron toggles: small, quiet, and the same size at every depth. */
+.ps-categorytree .accordion-button {
+  padding: .25rem .35rem !important;
+  width: auto !important;
+  flex: 0 0 auto;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+.ps-categorytree .accordion-button::after {
+  margin: 0;
+  width: .78rem;
+  height: .78rem;
+  background-size: .78rem;
+  filter: invert(1) brightness(1.8);
+  opacity: .4;
+}
+.ps-categorytree .accordion-button:not(.collapsed)::after { opacity: .75; }
+
+.ps-categorytree .left-block__title { padding: .35rem .6rem .3rem !important; }
+.ps-categorytree .left-block__title-link { color: var(--cc-text-faint) !important; }
+
+
+/* ------------------------------------------------ navigation artwork --- */
+/* Era logos only, in the right panel. Sealed's product types and Graded's graders
+   own no artwork, so they all inherited the same borrowed photo - one card repeated
+   down a column reads as a bug, not as decoration.
+
+   The logo gets the right 40% of the row and the label is padded out of that zone,
+   so a long name like "HeartGold & SoulSilver" wraps instead of running under the
+   artwork. Reserving the space is what makes it safe to show the logo at nearly
+   full strength: nothing is ever behind text, so nothing has to be faded to stay
+   readable. */
+a.menu-item[data-cc-art] {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  padding: .55rem 42% .55rem .8rem;
+  border-radius: var(--cc-radius-sm);
+  overflow: hidden;
+}
+a.menu-item[data-cc-art]::before {
+  content: "";
+  position: absolute;
+  top: .3rem;
+  right: .6rem;
+  bottom: .3rem;
+  width: 38%;
+  z-index: -1;
+  background-image: var(--cc-nav-image);
+  /* contain, NOT cover: these are logos on a transparent canvas, and cover zoomed
+     into the middle of each wordmark and cut off both ends. */
+  background-size: contain;
+  background-position: right center;
+  background-repeat: no-repeat;
+  opacity: .92;
+  transition: opacity .18s ease;
+}
+a.menu-item[data-cc-art]:hover { background: var(--cc-surface-2); }
+a.menu-item[data-cc-art]:hover::before { opacity: 1; }
+
+/* Homepage tiles.
+
+   The artwork sits top-RIGHT and is deliberately smaller than the tile: the label
+   occupies the bottom-left, so anything centred and full-bleed ends up directly
+   behind the words. Contained rather than cover, for the same reason the menu
+   logos are - cover crops a portrait card into an unreadable middle slice. */
+.cc-tile[style*="--cc-tile-image"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--cc-tile-image);
+  background-repeat: no-repeat;
+  /* Fills the tile. Shrinking it into the top-right corner made the artwork a
+     stamp on an otherwise empty card - the tile is the frame, so the picture
+     should fill it. The mask below is what keeps the label legible, not size. */
+  background-size: var(--cc-tile-size, cover);
+  background-position: var(--cc-tile-pos, center 18%);
+  opacity: .34;
+  /* Cleared away from the bottom-left corner, where the label and its meta line
+     sit. Without this the two overlap and neither is legible. */
+  -webkit-mask-image: linear-gradient(215deg, #000 0%, #000 46%, transparent 84%);
+  mask-image: linear-gradient(215deg, #000 0%, #000 46%, transparent 84%);
+  transition: opacity .18s ease, transform .18s ease;
+  pointer-events: none;
+}
+.cc-tile:hover::after { opacity: .5; }
+
+/**
+ * Shifting the artwork right is done by moving the LAYER, not the background
+ * inside it.
+ *
+ * background-position-x positions the horizontal OVERFLOW, and with `cover` on a
+ * portrait card in a landscape tile there is none: the image scales to the tile's
+ * width exactly, so 0%, 50% and 66% all render the same pixel. Measured - 267px
+ * tile, 267px scaled image, 0px to move.
+ *
+ * Insetting the layer from the left gives the picture a right-hand column and hands
+ * the label the clear space it needs. The Sets tile is excluded: its logo is
+ * contained rather than cover, so it has real overflow and positions normally.
+ */
+.cc-tile:not(.cc-tile--sets)[style*="--cc-tile-image"]::after {
+  left: 20%;
+}
+
+/* The Sets tile is a wide logo on transparency, not a portrait photo, so cover
+   would blow it up and crop it. Contained, and nudged left of true centre because
+   the Pokémon wordmark carries a trailing "TRADING CARD GAME" banner that drags its
+   optical centre to the right. */
+.cc-tile--sets[style*="--cc-tile-image"]::after {
+  --cc-tile-size: 74% auto;
+  --cc-tile-pos: left 44% top 30%;
+}
+
+.cc-tile__label, .cc-tile__meta { position: relative; z-index: 1; }
+
+/* ---------------------------------------------------------------------------
+ * Print region tabs in the Singles panel
+ *
+ * The strip is built by theme.js from the region groups ps_mainmenu already
+ * renders (see wireNavRegions). Only the active region's eras are shown, so the
+ * panel stays one grid tall however many regions the catalogue grows to.
+ *
+ * Nothing here fires with a single region: the strip is never inserted, so the
+ * default `--child` group keeps its normal layout untouched.
+ * ------------------------------------------------------------------------- */
+.cc-region-tabs {
+  /* The panel is Hummingbird's grid (repeat(3, 1fr)). Left as an ordinary grid
+     item the strip becomes a COLUMN, stretched to the full panel height - which
+     rendered the tabs as giant page-height pills. Spanning the row keeps the
+     grid intact and puts the strip where a tab strip goes: across the top. */
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .4rem;
+  padding-bottom: .85rem;
+  border-bottom: 1px solid var(--cc-line, rgba(255, 255, 255, .1));
+}
+
+.cc-region-tab {
+  padding: .32rem .8rem;
+  border: 1px solid var(--cc-accent-line);
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--cc-ink-2, #A8AEB8);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+
+.cc-region-tab:hover,
+.cc-region-tab:focus-visible {
+  color: var(--cc-accent);
+  border-color: var(--cc-accent);
+}
+
+/* The chosen region reads as chosen even after the pointer moves into the grid. */
+.cc-region-tab[data-cc-active] {
+  background: var(--cc-accent);
+  border-color: var(--cc-accent);
+  color: var(--cc-accent-ink);
+}
+
+/* The group headers are what the tabs replaced; keep them for screen readers. */
+.submenu__right-items[data-cc-regions] .menu-item__group-main-item {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.submenu__right-items[data-cc-regions] > ul.menu-item__group--child {
+  display: none;
+}
+
+/* Multi-column, because the eras are now ONE group instead of one group each.
+   ps_mainmenu used to render every era as its own <ul> and the panel's flex flow
+   spread them across three columns; putting region in between collapsed all 15
+   into a single tall list. The columns are rebuilt here rather than by undoing the
+   grouping - the grouping is what makes the region tabs possible. */
+.submenu__right-items[data-cc-regions] > ul.menu-item__group--child[data-cc-active] {
+  /* Full grid row, like the strip above: as a 1fr cell the whole era list was
+     crushed into a third of the panel and then split into three ~90px columns,
+     which is the wrapped-label, postage-stamp-logo mess. */
+  grid-column: 1 / -1;
+  display: block;
+  /* Columns rather than a grid template: the era count differs per region - 15
+     Western blocks, a different list for Japanese - and columns balance
+     themselves at whatever the count is. */
+  column-count: 3;
+  column-gap: 1.5rem;
+}
+
+.submenu__right-items[data-cc-regions] > ul.menu-item__group--child[data-cc-active] > li {
+  break-inside: avoid;
+}
+
+/* Era rows: one line each, logo on the right at a consistent size. The label
+   gets the space it needs first; nothing wraps at full panel width. */
+.submenu__right-items[data-cc-regions] > ul.menu-item__group--child[data-cc-active] a.menu-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 991px) {
+  .submenu__right-items[data-cc-regions] > ul.menu-item__group--child[data-cc-active] {
+    column-count: 2;
+  }
+}

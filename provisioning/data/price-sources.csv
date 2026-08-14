@@ -1,0 +1,319 @@
+reference,kind,pokemontcg_card_id,tcgplayer_product_id,tcgplayer_group_id,variant_key,tcgplayer_subtype
+PKM-BS-1,single,base1-1,42346,604,holofoil,Holofoil
+PKM-BS-2,single,base1-2,42360,604,holofoil,Holofoil
+PKM-BS-3,single,base1-3,42371,604,holofoil,Holofoil
+PKM-BS-4,single,base1-4,42382,604,holofoil,Holofoil
+PKM-BS-5,single,base1-5,42393,604,holofoil,Holofoil
+PKM-BS-6,single,base1-6,42404,604,holofoil,Holofoil
+PKM-BS-10,single,base1-10,42347,604,holofoil,Holofoil
+PKM-BS-11,single,base1-11,42351,604,holofoil,Holofoil
+PKM-BS-13,single,base1-13,42353,604,holofoil,Holofoil
+PKM-BS-14,single,base1-14,42354,604,holofoil,Holofoil
+PKM-BS-15,single,base1-15,42355,604,holofoil,Holofoil
+PKM-BS-16,single,base1-16,42356,604,holofoil,Holofoil
+PKM-BS-29,single,base1-29,42370,604,normal,Normal
+PKM-BS-32,single,base1-32,42374,604,normal,Normal
+PKM-BS-33,single,base1-33,42375,604,normal,Normal
+PKM-BS-39,single,base1-39,42381,604,normal,Normal
+PKM-BS-85,single,base1-85,108646,604,normal,Normal
+PKM-BS-88,single,base1-88,42431,604,normal,Normal
+PKM-BS-90,single,base1-90,42434,604,normal,Normal
+PKM-BS-93,single,base1-93,42437,604,normal,Normal
+PKM-BS-95,single,base1-95,42439,604,normal,Normal
+PKM-BS-100,single,base1-100,42348,604,normal,Normal
+PKM-JU-1,single,base2-1,45120,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-3,single,base2-3,45129,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-4,single,base2-4,45130,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-6,single,base2-6,45132,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-7,single,base2-7,45133,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-8,single,base2-8,45134,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-9,single,base2-9,45135,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-10,single,base2-10,45121,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-11,single,base2-11,45122,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-12,single,base2-12,45123,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-13,single,base2-13,45124,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-14,single,base2-14,45125,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-15,single,base2-15,45126,635,1stEditionHolofoil,1st Edition Holofoil
+PKM-JU-17,single,base2-17,106979,635,1stEdition,1st Edition
+PKM-JU-29,single,base2-29,106991,635,1stEdition,1st Edition
+PKM-JU-42,single,base2-42,45145,635,1stEdition,1st Edition
+PKM-JU-45,single,base2-45,45148,635,1stEdition,1st Edition
+PKM-JU-50,single,base2-50,45153,635,1stEdition,1st Edition
+PKM-JU-53,single,base2-53,45156,635,1stEdition,1st Edition
+PKM-JU-59,single,base2-59,45162,635,1stEdition,1st Edition
+PKM-JU-62,single,base2-62,45165,635,1stEdition,1st Edition
+PKM-JU-63,single,base2-63,45166,635,1stEdition,1st Edition
+PKM-FO-2,single,base3-2,106518,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-3,single,base3-3,106519,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-4,single,base3-4,106520,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-5,single,base3-5,106521,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-6,single,base3-6,106522,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-9,single,base3-9,106525,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-10,single,base3-10,44419,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-12,single,base3-12,44421,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-14,single,base3-14,44423,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-15,single,base3-15,44424,630,1stEditionHolofoil,1st Edition Holofoil
+PKM-FO-19,single,base3-19,44427,630,1stEdition,1st Edition
+PKM-FO-20,single,base3-20,44428,630,1stEdition,1st Edition
+PKM-FO-33,single,base3-33,44435,630,1stEdition,1st Edition
+PKM-FO-39,single,base3-39,44441,630,1stEdition,1st Edition
+PKM-FO-41,single,base3-41,44443,630,1stEdition,1st Edition
+PKM-FO-43,single,base3-43,44445,630,1stEdition,1st Edition
+PKM-FO-53,single,base3-53,44455,630,1stEdition,1st Edition
+PKM-FO-56,single,base3-56,44458,630,1stEdition,1st Edition
+PKM-FO-58,single,base3-58,44460,630,1stEdition,1st Edition
+PKM-FO-59,single,base3-59,44461,630,1stEdition,1st Edition
+PKM-FO-61,single,base3-61,44463,630,1stEdition,1st Edition
+PKM-FO-62,single,base3-62,44464,630,1stEdition,1st Edition
+PKM-TR-1,single,base5-1,84559,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-3,single,base5-3,84568,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-4,single,base5-4,84572,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-5,single,base5-5,84584,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-6,single,base5-6,84588,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-8,single,base5-8,84606,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-9,single,base5-9,84613,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-10,single,base5-10,84619,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-11,single,base5-11,84624,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-12,single,base5-12,84654,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-TR-19,single,base5-19,84564,1373,1stEdition,1st Edition
+PKM-TR-21,single,base5-21,84573,1373,1stEdition,1st Edition
+PKM-TR-31,single,base5-31,84672,1373,1stEdition,1st Edition
+PKM-TR-37,single,base5-37,84604,1373,1stEdition,1st Edition
+PKM-TR-47,single,base5-47,87021,1373,1stEdition,1st Edition
+PKM-TR-51,single,base5-51,84649,1373,1stEdition,1st Edition
+PKM-TR-55,single,base5-55,85078,1373,1stEdition,1st Edition
+PKM-TR-66,single,base5-66,88611,1373,1stEdition,1st Edition
+PKM-TR-69,single,base5-69,90409,1373,1stEdition,1st Edition
+PKM-TR-72,single,base5-72,88792,1373,1stEdition,1st Edition
+PKM-TR-78,single,base5-78,85841,1373,1stEdition,1st Edition
+PKM-TR-83,single,base5-83,84647,1373,1stEditionHolofoil,1st Edition Holofoil
+PKM-EVS-24,single,swsh7-24,246816,2848,normal,Normal
+PKM-EVS-20,single,swsh7-20,246836,2848,holofoil,Holofoil
+PKM-EVS-60,single,swsh7-60,246902,2848,holofoil,Holofoil
+PKM-EVS-73,single,swsh7-73,246855,2848,holofoil,Holofoil
+PKM-EVS-84,single,swsh7-84,246878,2848,normal,Normal
+PKM-EVS-89,single,swsh7-89,246890,2848,normal,Normal
+PKM-EVS-116,single,swsh7-116,246914,2848,holofoil,Holofoil
+PKM-EVS-118,single,swsh7-118,246915,2848,holofoil,Holofoil
+PKM-EVS-130,single,swsh7-130,246859,2848,normal,Normal
+PKM-EVS-153,single,swsh7-153,246778,2848,normal,Normal
+PKM-EVS-167,single,swsh7-167,246688,2848,holofoil,Holofoil
+PKM-EVS-175,single,swsh7-175,246747,2848,holofoil,Holofoil
+PKM-EVS-180,single,swsh7-180,246689,2848,holofoil,Holofoil
+PKM-EVS-184,single,swsh7-184,246700,2848,holofoil,Holofoil
+PKM-EVS-189,single,swsh7-189,246719,2848,holofoil,Holofoil
+PKM-EVS-192,single,swsh7-192,246758,2848,holofoil,Holofoil
+PKM-EVS-194,single,swsh7-194,246728,2848,holofoil,Holofoil
+PKM-EVS-205,single,swsh7-205,246696,2848,holofoil,Holofoil
+PKM-EVS-212,single,swsh7-212,246704,2848,holofoil,Holofoil
+PKM-EVS-209,single,swsh7-209,246756,2848,holofoil,Holofoil
+PKM-EVS-218,single,swsh7-218,246733,2848,holofoil,Holofoil
+PKM-EVS-215,single,swsh7-215,246723,2848,holofoil,Holofoil
+PKM-BRS-7,single,swsh9-7,263592,2948,normal,Normal
+PKM-BRS-20,single,swsh9-20,263708,2948,normal,Normal
+PKM-BRS-43,single,swsh9-43,263743,2948,normal,Normal
+PKM-BRS-51,single,swsh9-51,263757,2948,normal,Normal
+PKM-BRS-53,single,swsh9-53,263769,2948,normal,Normal
+PKM-BRS-89,single,swsh9-89,263806,2948,normal,Normal
+PKM-BRS-102,single,swsh9-102,263822,2948,normal,Normal
+PKM-BRS-104,single,swsh9-104,263824,2948,normal,Normal
+PKM-BRS-125,single,swsh9-125,263848,2948,normal,Normal
+PKM-BRS-148,single,swsh9-148,263868,2948,normal,Normal
+PKM-BRS-153,single,swsh9-153,263872,2948,holofoil,Holofoil
+PKM-BRS-154,single,swsh9-154,263873,2948,holofoil,Holofoil
+PKM-BRS-156,single,swsh9-156,263875,2948,holofoil,Holofoil
+PKM-BRS-157,single,swsh9-157,263876,2948,holofoil,Holofoil
+PKM-BRS-166,single,swsh9-166,263885,2948,holofoil,Holofoil
+PKM-BRS-174,single,swsh9-174,263893,2948,holofoil,Holofoil
+PKM-BRS-176,single,swsh9-176,263896,2948,holofoil,Holofoil
+PKM-BRS-181,single,swsh9-181,263901,2948,holofoil,Holofoil
+PKM-BRS-182,single,swsh9-182,263902,2948,holofoil,Holofoil
+PKM-BRS-183,single,swsh9-183,263903,2948,holofoil,Holofoil
+PKM-BRS-184,single,swsh9-184,263904,2948,holofoil,Holofoil
+PKM-BRS-186,single,swsh9-186,263907,2948,holofoil,Holofoil
+PKM-OBF-114,single,sv3-114,509839,23228,normal,Normal
+PKM-OBF-115,single,sv3-115,509842,23228,normal,Normal
+PKM-OBF-127,single,sv3-127,509883,23228,normal,Normal
+PKM-OBF-63,single,sv3-63,509823,23228,normal,Normal
+PKM-OBF-76,single,sv3-76,509853,23228,normal,Normal
+PKM-OBF-119,single,sv3-119,509868,23228,normal,Normal
+PKM-OBF-118,single,sv3-118,509866,23228,normal,Normal
+PKM-OBF-190,single,sv3-190,509782,23228,normal,Normal
+PKM-OBF-173,single,sv3-173,509714,23228,normal,Normal
+PKM-OBF-183,single,sv3-183,509769,23228,normal,Normal
+PKM-OBF-199,single,sv3-199,509945,23228,holofoil,Holofoil
+PKM-OBF-215,single,sv3-215,509963,23228,holofoil,Holofoil
+PKM-OBF-202,single,sv3-202,509949,23228,holofoil,Holofoil
+PKM-OBF-204,single,sv3-204,509951,23228,holofoil,Holofoil
+PKM-OBF-225,single,sv3-225,509983,23228,holofoil,Holofoil
+PKM-OBF-207,single,sv3-207,509955,23228,holofoil,Holofoil
+PKM-OBF-228,single,sv3-228,509989,23228,holofoil,Holofoil
+PKM-OBF-208,single,sv3-208,509956,23228,holofoil,Holofoil
+PKM-OBF-209,single,sv3-209,509957,23228,holofoil,Holofoil
+PKM-OBF-198,single,sv3-198,509944,23228,holofoil,Holofoil
+PKM-OBF-205,single,sv3-205,509952,23228,holofoil,Holofoil
+PKM-OBF-223,single,sv3-223,509980,23228,holofoil,Holofoil
+PKM-MEW-7,single,sv3pt5-7,502548,23237,normal,Normal
+PKM-MEW-35,single,sv3pt5-35,516030,23237,normal,Normal
+PKM-MEW-18,single,sv3pt5-18,502567,23237,normal,Normal
+PKM-MEW-49,single,sv3pt5-49,516213,23237,normal,Normal
+PKM-MEW-42,single,sv3pt5-42,516152,23237,normal,Normal
+PKM-MEW-48,single,sv3pt5-48,516206,23237,normal,Normal
+PKM-MEW-85,single,sv3pt5-85,516654,23237,holofoil,Holofoil
+PKM-MEW-56,single,sv3pt5-56,516242,23237,normal,Normal
+PKM-MEW-102,single,sv3pt5-102,516671,23237,normal,Normal
+PKM-MEW-157,single,sv3pt5-157,516719,23237,normal,Normal
+PKM-MEW-173,single,sv3pt5-173,513721,23237,holofoil,Holofoil
+PKM-MEW-168,single,sv3pt5-168,502556,23237,holofoil,Holofoil
+PKM-MEW-166,single,sv3pt5-166,516997,23237,holofoil,Holofoil
+PKM-MEW-169,single,sv3pt5-169,517018,23237,holofoil,Holofoil
+PKM-MEW-171,single,sv3pt5-171,517038,23237,holofoil,Holofoil
+PKM-MEW-170,single,sv3pt5-170,502549,23237,holofoil,Holofoil
+PKM-MEW-175,single,sv3pt5-175,517035,23237,holofoil,Holofoil
+PKM-MEW-198,single,sv3pt5-198,517044,23237,holofoil,Holofoil
+PKM-MEW-199,single,sv3pt5-199,517045,23237,holofoil,Holofoil
+PKM-MEW-200,single,sv3pt5-200,517046,23237,holofoil,Holofoil
+PKM-MEW-201,single,sv3pt5-201,517047,23237,holofoil,Holofoil
+PKM-MEW-202,single,sv3pt5-202,517048,23237,holofoil,Holofoil
+PKM-PAF-4,single,sv4pt5-4,534137,23353,normal,Normal
+PKM-PAF-11,single,sv4pt5-11,534152,23353,normal,Normal
+PKM-PAF-85,single,sv4pt5-85,534447,23353,normal,Normal
+PKM-PAF-45,single,sv4pt5-45,534192,23353,normal,Normal
+PKM-PAF-109,single,sv4pt5-109,534483,23353,holofoil,Holofoil
+PKM-PAF-113,single,sv4pt5-113,534494,23353,holofoil,Holofoil
+PKM-PAF-105,single,sv4pt5-105,534478,23353,holofoil,Holofoil
+PKM-PAF-106,single,sv4pt5-106,534479,23353,holofoil,Holofoil
+PKM-PAF-139,single,sv4pt5-139,534540,23353,holofoil,Holofoil
+PKM-PAF-125,single,sv4pt5-125,534516,23353,holofoil,Holofoil
+PKM-PAF-131,single,sv4pt5-131,534522,23353,holofoil,Holofoil
+PKM-PAF-146,single,sv4pt5-146,534584,23353,holofoil,Holofoil
+PKM-PAF-160,single,sv4pt5-160,534683,23353,holofoil,Holofoil
+PKM-PAF-198,single,sv4pt5-198,535174,23353,holofoil,Holofoil
+PKM-PAF-201,single,sv4pt5-201,535191,23353,holofoil,Holofoil
+PKM-PAF-202,single,sv4pt5-202,535193,23353,holofoil,Holofoil
+PKM-PAF-210,single,sv4pt5-210,535215,23353,holofoil,Holofoil
+PKM-PAF-232,single,sv4pt5-232,534919,23353,holofoil,Holofoil
+PKM-PAF-216,single,sv4pt5-216,535527,23353,holofoil,Holofoil
+PKM-PAF-233,single,sv4pt5-233,535085,23353,holofoil,Holofoil
+PKM-PAF-234,single,sv4pt5-234,535090,23353,holofoil,Holofoil
+PKM-PAF-237,single,sv4pt5-237,535101,23353,holofoil,Holofoil
+PKM-SCR-39,single,sv7-39,567265,23537,normal,Normal
+PKM-SCR-42,single,sv7-42,567268,23537,normal,Normal
+PKM-SCR-52,single,sv7-52,567278,23537,normal,Normal
+PKM-SCR-55,single,sv7-55,567281,23537,holofoil,Holofoil
+PKM-SCR-66,single,sv7-66,567292,23537,normal,Normal
+PKM-SCR-78,single,sv7-78,567304,23537,normal,Normal
+PKM-SCR-106,single,sv7-106,567332,23537,normal,Normal
+PKM-SCR-120,single,sv7-120,567346,23537,normal,Normal
+PKM-SCR-123,single,sv7-123,567356,23537,normal,Normal
+PKM-SCR-127,single,sv7-127,567372,23537,normal,Normal
+PKM-SCR-143,single,sv7-143,567418,23537,holofoil,Holofoil
+PKM-SCR-148,single,sv7-148,567429,23537,holofoil,Holofoil
+PKM-SCR-151,single,sv7-151,567434,23537,holofoil,Holofoil
+PKM-SCR-152,single,sv7-152,567435,23537,holofoil,Holofoil
+PKM-SCR-154,single,sv7-154,567439,23537,holofoil,Holofoil
+PKM-SCR-167,single,sv7-167,567472,23537,holofoil,Holofoil
+PKM-SCR-168,single,sv7-168,567474,23537,holofoil,Holofoil
+PKM-SCR-169,single,sv7-169,567476,23537,holofoil,Holofoil
+PKM-SCR-170,single,sv7-170,567478,23537,holofoil,Holofoil
+PKM-SCR-171,single,sv7-171,567482,23537,holofoil,Holofoil
+PKM-SCR-172,single,sv7-172,567484,23537,holofoil,Holofoil
+PKM-SCR-173,single,sv7-173,567486,23537,holofoil,Holofoil
+PKM-SSP-16,single,sv8-16,590092,23651,normal,Normal
+PKM-SSP-18,single,sv8-18,590014,23651,normal,Normal
+PKM-SSP-59,single,sv8-59,589993,23651,normal,Normal
+PKM-SSP-65,single,sv8-65,590071,23651,holofoil,Holofoil
+PKM-SSP-69,single,sv8-69,590008,23651,normal,Normal
+PKM-SSP-71,single,sv8-71,590080,23651,normal,Normal
+PKM-SSP-108,single,sv8-108,589926,23651,normal,Normal
+PKM-SSP-126,single,sv8-126,589882,23651,normal,Normal
+PKM-SSP-134,single,sv8-134,589861,23651,normal,Normal
+PKM-SSP-152,single,sv8-152,590037,23651,normal,Normal
+PKM-SSP-197,single,sv8-197,589891,23651,holofoil,Holofoil
+PKM-SSP-203,single,sv8-203,589987,23651,holofoil,Holofoil
+PKM-SSP-219,single,sv8-219,590026,23651,holofoil,Holofoil
+PKM-SSP-236,single,sv8-236,589930,23651,holofoil,Holofoil
+PKM-SSP-237,single,sv8-237,590006,23651,holofoil,Holofoil
+PKM-SSP-238,single,sv8-238,590027,23651,holofoil,Holofoil
+PKM-SSP-239,single,sv8-239,589985,23651,holofoil,Holofoil
+PKM-SSP-240,single,sv8-240,589967,23651,holofoil,Holofoil
+PKM-SSP-242,single,sv8-242,589860,23651,holofoil,Holofoil
+PKM-SSP-245,single,sv8-245,589973,23651,holofoil,Holofoil
+PKM-SSP-246,single,sv8-246,589990,23651,holofoil,Holofoil
+PKM-SSP-247,single,sv8-247,593169,23651,holofoil,Holofoil
+PKM-PRE-4,single,sv8pt5-4,610359,23821,normal,Normal
+PKM-PRE-37,single,sv8pt5-37,610392,23821,holofoil,Holofoil
+PKM-PRE-50,single,sv8pt5-50,610405,23821,normal,Normal
+PKM-PRE-61,single,sv8pt5-61,610416,23821,normal,Normal
+PKM-PRE-66,single,sv8pt5-66,610421,23821,normal,Normal
+PKM-PRE-72,single,sv8pt5-72,610427,23821,normal,Normal
+PKM-PRE-93,single,sv8pt5-93,610448,23821,normal,Normal
+PKM-PRE-101,single,sv8pt5-101,610456,23821,normal,Normal
+PKM-PRE-105,single,sv8pt5-105,610460,23821,normal,Normal
+PKM-PRE-118,single,sv8pt5-118,610473,23821,normal,Normal
+PKM-PRE-144,single,sv8pt5-144,610499,23821,holofoil,Holofoil
+PKM-PRE-147,single,sv8pt5-147,610502,23821,holofoil,Holofoil
+PKM-PRE-146,single,sv8pt5-146,610501,23821,holofoil,Holofoil
+PKM-PRE-153,single,sv8pt5-153,610508,23821,holofoil,Holofoil
+PKM-PRE-150,single,sv8pt5-150,610505,23821,holofoil,Holofoil
+PKM-PRE-149,single,sv8pt5-149,610504,23821,holofoil,Holofoil
+PKM-PRE-155,single,sv8pt5-155,610510,23821,holofoil,Holofoil
+PKM-PRE-156,single,sv8pt5-156,610511,23821,holofoil,Holofoil
+PKM-PRE-162,single,sv8pt5-162,610517,23821,holofoil,Holofoil
+PKM-PRE-161,single,sv8pt5-161,610516,23821,holofoil,Holofoil
+PKM-PRE-165,single,sv8pt5-165,610520,23821,holofoil,Holofoil
+PKM-PRE-167,single,sv8pt5-167,610522,23821,holofoil,Holofoil
+SLD-DE2C8E95B9,sealed,,138130,604,,Normal
+SLD-C57D0F9F5F,sealed,,138128,635,,Normal
+SLD-5184EEADA2,sealed,,138129,635,,Normal
+SLD-31005FCB04,sealed,,138133,630,,Normal
+SLD-6A9B5144C1,sealed,,138134,630,,Normal
+SLD-B139420015,sealed,,138136,1373,,Normal
+SLD-626C5851F7,sealed,,242436,2848,,Normal
+SLD-9F7A137938,sealed,,243721,2848,,Normal
+SLD-F9988ED69B,sealed,,243722,2848,,Normal
+SLD-73CAC72321,sealed,,245376,2848,,Normal
+SLD-D6A76DD6AE,sealed,,245855,2848,,Normal
+SLD-2AFACA47B2,sealed,,641794,2848,,Normal
+SLD-5F455CE010,sealed,,256141,2948,,Normal
+SLD-6379A1AE05,sealed,,256145,2948,,Normal
+SLD-55EF4C40DA,sealed,,264269,2948,,Normal
+SLD-0869F1704B,sealed,,599964,2948,,Normal
+SLD-1A0B9C972C,sealed,,639337,2948,,Normal
+SLD-D57C504B85,sealed,,651285,2948,,Normal
+SLD-46D04C6169,sealed,,501257,23228,,Normal
+SLD-75CE8AEA72,sealed,,501258,23228,,Normal
+SLD-B8DEFBB274,sealed,,501265,23228,,Normal
+SLD-8469705D37,sealed,,501266,23228,,Normal
+SLD-621B6BE46D,sealed,,514193,23228,,Normal
+SLD-177A29DF5F,sealed,,606743,23228,,Normal
+SLD-02CB47AC2F,sealed,,506640,23237,,Normal
+SLD-68280D8457,sealed,,513409,23237,,Normal
+SLD-3E76F06ED9,sealed,,515970,23237,,Normal
+SLD-8AC7A655F4,sealed,,528030,23237,,Normal
+SLD-5C171F6E64,sealed,,530105,23237,,Normal
+SLD-2175D528C1,sealed,,668357,23237,,Normal
+SLD-8DF30E093D,sealed,,528039,23353,,Normal
+SLD-83EA51E35B,sealed,,528324,23353,,Normal
+SLD-A944668290,sealed,,530700,23353,,Normal
+SLD-B3550437A4,sealed,,530704,23353,,Normal
+SLD-EFE8900D0A,sealed,,536266,23353,,Normal
+SLD-C7DC5293D4,sealed,,635609,23353,,Normal
+SLD-0F6D192361,sealed,,557354,23537,,Normal
+SLD-A81EB25781,sealed,,557363,23537,,Normal
+SLD-FF062001CC,sealed,,557365,23537,,Normal
+SLD-95463BDBAE,sealed,,557366,23537,,Normal
+SLD-C7BE75E856,sealed,,559102,23537,,Normal
+SLD-3BD645CDA7,sealed,,649420,23537,,Normal
+SLD-AD501ECB6E,sealed,,565600,23651,,Normal
+SLD-EE30B47D7A,sealed,,565631,23651,,Normal
+SLD-4E274781EB,sealed,,565633,23651,,Normal
+SLD-7B830F6194,sealed,,580708,23651,,Normal
+SLD-81ABD12091,sealed,,593687,23651,,Normal
+SLD-2B34D0E8C6,sealed,,594269,23651,,Normal
+SLD-0C73622BD9,sealed,,598487,23821,,Normal
+SLD-6BA1FA8BCE,sealed,,600697,23821,,Normal
+SLD-6ACB31528E,sealed,,610317,23821,,Normal
+SLD-8C64B7A2A3,sealed,,615027,23821,,Normal
+SLD-47F5C4EC55,sealed,,638058,23821,,Normal
+SLD-FF82132A31,sealed,,650804,23821,,Normal
