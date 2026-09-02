@@ -2,3 +2,5 @@
 *.sql
 *.sql.gz
 backups/
+*.log
+.DS_Store

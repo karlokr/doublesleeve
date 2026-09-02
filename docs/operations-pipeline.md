@@ -32,7 +32,8 @@ first-hand. This plan goes to those sources directly.
 | **TCGplayer API** | Market / low / mid / high / direct-low, live | Application + approval, partner-oriented | Upgrade path from TCGCSV |
 | **pokemontcg.io** | TCGplayer + Cardmarket snapshots per card | Free, keyed | Cross-check, already wired in |
 | **eBay Browse / Marketplace Insights** | Active listings, and *sold* comps with approval | Free tier + approval for sold data | **Reality check** — what things actually sell for |
-| **PriceCharting** | Sealed and **graded** (PSA/BGS/CGC) prices | Paid | The only good source for slabs |
+| **PriceCharting** | Graded per-tier estimates + sold comps | Free (scraped) | Card pages carry per-tier sold-listing tables; see `ops/lib/graded-quotes.php` |
+| **130point** | eBay sold listings | Free (scraped) | Freshest graded sales; rate-limits by IP, engine degrades gracefully |
 | **Cardmarket** | European prices in EUR | Keyed | Only if you sell into the EU |
 | **JustTCG / tcgapi.dev** | Commercial aggregated TCG pricing | Paid subscription | Shortcut if you'd rather buy than build |
 
@@ -125,7 +126,7 @@ nothing custom was built. It was inert for two config reasons, both fixed:
 - USD sat at `conversion_rate = 1.000000`, identical to CAD, so even with the
   feature on every price rendered the same number with a different label.
 
-`provisioning/currency-sync.php` sets the rates and runs from cron at **00:05 and
+`ops/pricing/currency-sync.php` sets the rates and runs from cron at **00:05 and
 12:05**, deliberately ahead of the price engine at :15 — both read the same Bank
 of Canada rate, and a stale `conversion_rate` mis-prices every USD order. If Valet
 is unreachable it falls back to the last rate cached in `price_fx` rather than
@@ -273,6 +274,20 @@ Charizards become ten product pages competing for the same search term.
 
 ### 2.2 The model
 
+**What gets serialised: everything sellable.** Singles raw, singles graded, and
+sealed product alike — anything that can carry a photograph of the individual
+item gets a serial. A graded copy is serialised as the combination it lives on,
+so two PSA 10s of one card are two copies of one SKU, each photographable.
+Sealed product has no combinations at all and is serialised against the product
+itself (`id_product_attribute = 0`).
+
+That last case is easy to lose: PrestaShop keeps a `stock_available` row at
+`id_product_attribute = 0` for *every* product, holding the running total for
+products that have combinations. So "serialise the stock" means *combinations,
+plus products that have none* — never a flat `id_product_attribute > 0`, which
+silently excludes all sealed, and never both, which double-counts everything
+else.
+
 Keep the product page as the printing. Add a copy layer beneath it.
 
 ```
@@ -376,19 +391,34 @@ product.
 **The display rule, per SKU:**
 
 ```
-sealed product          → always the stock photo. Never serialised.
-1 copy available        → that copy's own photo, as the main image.
-                          The stock photo is not shown at all.
-2+ copies available     → stock photo as the main image,
-                          plus an optional "choose your exact card" gallery.
-copy has no photo yet   → fall back to the stock photo.
+always                  → the stock photo owns the gallery,
+                          on the product page AND in the browser tile.
+any copies photographed → plus a "choose your exact card" picker.
+                          Picking one swaps the gallery to that copy's photos.
+no copy photographed    → stock photo, and say photography is pending.
+policy = stock_only     → stock photo, and say so plainly (bulk).
 ```
 
-This falls out of how the inventory actually behaves. A $14,000 shadowless
-Charizard is a one-of-one in practice — showing a generic reference scan for it
-would be actively misleading, and the buyer is paying for *that* card's condition.
-A $0.30 common has eighteen interchangeable copies, and photographing each one is
-wasted labour nobody wants to look at.
+**The stock photo is never replaced without the shopper asking.** It is the best
+image on the page — for a graded copy it is the composited slab, showing the
+holder and its label — so a listing must not quietly downgrade itself to a
+snapshot nobody requested. Photographs of the actual item are worth showing *on
+demand*; they are not worth showing *instead*. Two earlier rules said otherwise
+and are gone:
+
+- *"sealed → always the stock photo, never serialised"*. Sealed is serialised
+  now. The old reasoning was that one factory-sealed box is interchangeable with
+  another, which is true of the cards inside and false of the box: condition,
+  dents, shrink-wrap and print run all vary, and a buyer paying box prices wants
+  to see the one being shipped.
+- *"1 copy available → that copy's own photo as the main image"*. A lone copy no
+  longer promotes its photograph over the stock image. It had the effect of
+  replacing a composited slab with a placeholder snapshot, on the product page
+  and in the listing tile, on exactly the listings that most needed to look good.
+
+Serialising is not the same as photographing. Every copy starts `pending`, and
+what is worth a camera is still a business decision — a $0.30 common with
+eighteen interchangeable copies is flagged `stock_only` and says so.
 
 **The reference card back ships as an asset.** `provisioning/assets/card-back.jpg`
 is the standard English back (745×1040), used for every stock back and for the
@@ -416,11 +446,14 @@ a buyer. So the four states each get their own wording:
 
 | SKU state | What the panel says |
 |---|---|
-| 1 copy, captured | "Photographed above is **the exact card you will receive**" + serial |
+| any count, some captured | "Choose your exact card" picker, one tile per photographed serial |
 | 1 copy, pending | Serial, and that the photo is pending |
-| 2+ copies, some captured | "Choose your exact card" picker |
 | 2+ copies, none captured, `per_copy` | "Individual copies not photographed **yet**" |
 | any count, all `stock_only` | "Sold by condition — **not** individually photographed" |
+
+Note the first row covers a single copy too. A one-of-one still goes through the
+picker rather than seizing the gallery, so the shopper sees the slab or the
+reference scan first and the photograph second, by choice.
 
 A SKU counts as `stock_only` only when *every* copy in it is flagged that way. One
 copy still queued for the camera keeps the whole SKU on the "pending" wording, so
@@ -431,12 +464,270 @@ gives the count for the selected printing and condition. Saying it again in
 different words ("3 in stock" above, "One in stock" below) read as two conflicting
 facts about the same SKU. The stock box owns quantity; this panel owns photography.
 
+### 2.5 Choosing copies
+
+The picker is **open on arrival** whenever the selected SKU has photographed
+copies. Collapsed behind a summary, the shop's best feature was a thing you had
+to know to go looking for.
+
+**Click to look, confirm to buy.** Clicking a tile only previews that copy in the
+main gallery, so a shopper can work along the row comparing cards without
+committing to any of them; a separate confirm adds the previewed copy to the
+order. That split is what makes selecting several possible — with
+click-to-select there is no way to inspect a card you have not already chosen.
+
+**The selection drives the line quantity.** Three chosen copies is an order for
+three, and the serials ride along on the form so the cart hook reserves those
+exact physical cards rather than any three of the SKU. Choosing nothing leaves
+the quantity alone, because the picker is optional and must not overwrite a
+number the shopper set by hand. The ceiling is stock, not the tile count — the
+picker can show copies that are photographed but no longer available.
+
+**A chosen copy keeps the gallery.** Once a copy is confirmed, the gallery shows
+it — including across the product refresh that a quantity change triggers, which
+otherwise rebuilt the gallery from the stock images and left the page
+contradicting itself: the reference scan on the left, two cards marked chosen on
+the right. The most recent choice is what is shown, and clicking any other tile
+still previews it without changing the selection.
+
+Removing a copy falls back to the one chosen before it, and only when nothing is
+chosen at all does the stock gallery return. Leaving a photograph of a card the
+shopper has just declined on screen states the opposite of what they did.
+
+Photos are remembered by serial, separately from the picker's own list: a copy
+chosen from page three is no longer in that list after a re-render, and would
+otherwise become undisplayable.
+
+```sql
+cc_card_copy_choice
+  PRIMARY KEY (id_cart, id_product, id_product_attribute, copy_uid)
+```
+
+The key includes `copy_uid`. It was one row per line, which allowed exactly one
+chosen serial — buying two photographed copies of a card meant picking one and
+taking pot luck on the second. The choice list REPLACES what was stored for that
+line rather than merging, or deselecting would leave a serial recorded and the
+line would keep asking for a card nobody wanted.
+
+**Paging.** Only the first `COPY_PAGE` tiles ship with the page; the rest arrive
+from the copies controller as the carousel is dragged toward its end. A card we
+hold fifty photographed copies of carries two hundred photo URLs, and embedding
+all of them costs every visitor whether or not they open the picker. The SKU's
+`count` and `photographed` totals are computed **before** the list is trimmed —
+one is the selection ceiling, the other is what the badge reports.
+
+Drag and click share the row and are told apart by distance: a press that travels
+more than a few pixels is a drag, and the click that follows it is suppressed in
+the capture phase. Without that, flicking the row previews whatever happened to
+be under your finger when you let go.
+
+### 2.6 The cart
+
+A cart line is keyed on `(id_product, id_product_attribute)`, so the rules that
+split the product browser already split the cart: 1st Edition and Unlimited are
+separate lines, and every graded copy is its own line per grader and tier. The
+line has to SAY so — without a grading chip a raw copy and a PSA 9 of one card
+render as two identical lines differing only in price.
+
+**The line reads as a description on top and its controls along the bottom.**
+Hummingbird stacked the stepper and the line total in a column beside the title
+and gave "Remove" a row of its own underneath, so the three things you can do to
+a line lived in three different places. Everything that describes the card —
+picture, title, chips, unit price — is one block; everything that acts on it is a
+single row ending at the total those actions change. The picture is usually what
+makes a line tall, so the control row is pinned to the **bottom** of whatever
+height the picture sets rather than stopping where the text runs out — the
+description row absorbs the slack. A floor under the line keeps rows comparable
+when the pictures are not: a sealed case photo is wide and short, about 70px
+against a card scan's 180, and without one a cart mixing the two gave every line
+a different height and the short ones a cramped strip. The picture is centred in
+whatever room the line has. Remove is the Material
+Icons bin the rest of the shop's chrome uses, not the word: it was the only thing
+in that row that was not a control, and it read as a label for the numbers beside
+it. The word it replaced becomes the accessible name, so the control stays
+labelled and stays translated without a string of ours.
+
+Three behaviours hang off `cartLines()`, which gathers the same three facts once
+per line — the copies chosen, what is in stock, and whether photos exist:
+
+- **Show selected cards** — a modal listing the exact serials on that line. It is
+  sized to the stepper it shares the row with; a control half the height of the
+  one beside it reads as a caption rather than as something to press.
+- **A quantity ceiling** at available stock, stated when it is reached rather
+  than after a round trip that reads as the shop losing the stock.
+- **A picker on increase** — raising the quantity asks which additional physical
+  card, and the quantity does not move until it is answered. One press adds one
+  card, so it asks about one card, never the backlog of units that happen to be
+  unchosen. It carries a **Skip**, because choosing by photo is optional: the
+  extra unit ships FIFO, exactly as it would for a shopper who never opened it.
+- **A required choice on decrease** — lowering the quantity below the number of
+  chosen copies asks WHICH card is being given up, and the quantity does not move
+  until it is answered. The shop cannot pick that for them.
+- **Decreasing past one removes the line**, and asks nothing. It used to stop
+  dead at a quantity of one, which left the control doing nothing — and a button
+  that does nothing cannot be told apart from one that failed. There is no
+  question to put even when the line has a chosen card: the shopper is removing
+  their only copy, and the bin sitting beside that button does the same thing
+  without asking.
+
+Which means the picker is never opened to ask a question with one possible
+answer. A single chosen copy cannot reach it: dropping below one chosen card is
+dropping below one unit, which is the rule above.
+
+The asymmetry is the point. Adding can fall back to "any copy" and still be
+truthful; removing cannot, because there is no neutral answer to which of the
+shopper's three chosen cards to drop.
+
+Both dialogs are operated the same way and say the same things with colour:
+
+- **Select card** carries the accent while it is the outstanding step, because it
+  is what unlocks Confirm. Once the card in view is already held it becomes an
+  undo and steps down to an outline, so it stops competing with the choice still
+  to be made.
+- **Confirm is dead until the count is met.** It means "these are my cards", so
+  it cannot be pressed while it would be a lie. Disabled, it drops its colour
+  entirely rather than showing a dimmer version of it — a merely faded button
+  reads as a styling accident, and the shopper presses it and concludes the
+  dialog is broken.
+- **The colour tracks what the press does**, not where the button sits: green to
+  add, red to remove. Green on a button that takes a card off the order would say
+  the opposite of what happens.
+- **Skip is red**, the only other action that gives something up. Outline and
+  wash rather than a fill: it is a real alternative, not the thing to press.
+
+Neither dialog carries a lead sentence. The title asks the question and the
+counter states the number, so a paragraph repeating both only pushed the cards
+down the panel.
+
+All three dialogs share one gallery, and **it decodes the next picture before it
+swaps.** Assigning to `src` blanks the element the moment it is set and leaves it
+empty until the file decodes, so every thumbnail click flashed an empty stage —
+even on an image the browser already held, because the gap is in the paint, not
+the network. Two things follow from doing it this way: a click that lands while
+an earlier one is still decoding wins outright rather than queueing, and the
+thumbnail row is left alone when the shots have not changed, since rebuilding it
+tore down images that were already on screen. The stage is as tall as an image is
+allowed to be, so a slab composite and a flat scan do not move the panel between
+them.
+
+Choosing fewer cards than the line gained is still allowed — that is exactly what
+Skip is for, and it says out loud what happens to the remainder.
+
+**A dialog owns the viewport.** The backdrop stopped clicks but not the wheel, so
+the page slid about behind an open question; on the cart that meant the line
+being edited could scroll out of sight. The root scroller is locked for as long
+as any modal is up — derived from what is on screen rather than counted, because
+the confirmation step opens a second modal over the first and a plain toggle
+would hand the page back the moment the inner one closed. The scrollbar's width
+is handed back as padding, or the whole page jumps sideways as the dialog opens.
+
+The requirement is scoped to copies that are actually chosen. A line of five with
+three chosen can fall to three freely — those two units were never anybody's
+particular card. Only below that does the modal appear.
+
+**A line can never have more chosen copies than it is buying.** Lowering a
+quantity used to leave the choices untouched, so a line of two still claimed
+three chosen cards, and the surplus would have been reserved at checkout for a
+card the shopper had already given up. `cartLines()` deletes the surplus rather
+than hiding it, so a cart carrying that state repairs itself on the next view.
+
+**Both directions ask first and move the quantity afterwards.** The increase used
+to do the opposite — add, then offer the picker when the cart reported back — and
+the gap between the two was wide enough to press again, and again, so a fast hand
+ran the count up without ever seeing a card. Opening the dialog as the first
+thing the press does closes that gap by construction: there is no window in which
+the count has moved and the question has not been put. Abandoning the dialog is
+therefore simply a no, with nothing to unwind, and every route that can change a
+quantity — the two buttons and the text field — goes through the same gate.
+
+The answer is applied by re-pressing the button PrestaShop already owns rather
+than writing the quantity directly; only that route is proven to actually move
+the cart.
+
+**Nothing about how a line LOOKS waits for JavaScript.** The chips, the "show
+selected cards" button and the bin all used to be applied after the page had
+loaded, so every arrival at the cart — and every refresh, and every quantity
+change — showed PrestaShop's bare line first and the finished one a moment
+later. None of it depends on anything the client knows, so none of it has any
+business waiting for the client:
+
+- **Chips and the button** are rendered by the server, through the cart line
+  template's own per-product hooks. That also makes the AJAX re-render free: the
+  cart block comes back from the server already complete.
+- **The bin** is CSS. The theme's icon font is a ligature font, so the glyph is
+  reachable from `content` and the word "Remove" is simply not drawn — it stays
+  in the accessibility tree, and the template already gives the link an
+  aria-label.
+- **PrestaShop's label/value rows**, which the chips replace, are hidden in CSS.
+  They used to be deleted by the same pass that added the chips, so moving the
+  chips to the server stopped that pass and brought the rows back; a row that has
+  to be deleted after the fact is a row the shopper can watch arrive and leave.
+
+What is left for JavaScript is behaviour, which has nothing to show. It is still
+re-attached after a re-render, from a MutationObserver rather than a timer — and
+that observer watches the **body**, because the update replaces the
+`cart-overview` node itself rather than its children, so an observer bound there
+is left holding a detached element and never fires again. It fails silently,
+which is how the first attempt at this looked correct and fixed nothing.
+
+Three traps, all from the cart re-rendering on every change:
+
+- A line that is mid-operation is locked, and the lock is held **outside the
+  DOM**, keyed by SKU. Held on the element, both the flag and the class that
+  dimmed it were destroyed by the very update they were meant to guard — the
+  line came back fresh and clickable while the dialog was still opening.
+- `cryptocardsCartLines` is replaced wholesale on each refresh, so handlers
+  attached once and closed over their entry were deciding from a chosen-count
+  several edits out of date. They re-read it per press instead.
+
+- It does **not** always replace the line element, so clearing a guard and
+  re-running stacked a second increment handler — one click asked for two more
+  cards. Listeners are attached once per line and never re-attached; only the
+  visual parts are rebuilt.
+- Everything the theme adds to a line is otherwise destroyed by the first
+  quantity change, which reverted lines to PrestaShop's raw attribute list.
+
+### 2.7 Gallery composition
+
+A card's stock images are the front scan, the card back, and one composited slab
+per graded combination it holds. Which of them the gallery shows, and in what
+order, depends on the selection:
+
+```
+ungraded selected  → front, back, then every graded composite
+graded selected    → that grading's composite, then front, then back
+```
+
+The composite leads when graded because the holder and its label are what is
+being bought; the front and back still follow, because they are the only view of
+the card inside it.
+
+Sealed products get no card back. The back is a fact about a *card*, and a
+photograph of a Pokémon card back on a sealed booster pack is a picture of
+something that is not the product — on a listing whose entire premise is that it
+has never been opened. Cards are identified for this by `cc_card_identity`, not
+by being serialised: those meant the same thing until sealed was serialised too.
+
+Only the graded case needs code. PrestaShop already renders the ungraded order
+correctly, but selecting a graded SKU makes it filter the gallery down to that
+combination's single image — leaving a slab listing with no picture of the card's
+front or back at all. The theme appends the images that belong to no combination,
+which yields the order above and changes nothing when ungraded. Two details that
+bite:
+
+- The page has **two** carousels, the inline gallery and the fullscreen viewer.
+  Appending to only the first leaves zoom — the one place a buyer goes to look
+  closely — showing the slab alone.
+- Images are addressed as `/<id_image>-<type>/<rewrite>.jpg`, so a slide is
+  cloned and its id swapped. Emitting URLs instead would mean naming image types
+  server-side and rebuilding the responsive `srcset` by hand.
+
 **Choosing a copy is always optional.** Most buyers want "a Near Mint one" and
 should never be forced through a gallery. Selecting a specific copy is an opt-in
 affordance; taking no action reserves the oldest available copy (FIFO, which is
 also correct stock rotation).
 
-### 2.5 What copies are *not* for
+### 2.8 What copies are *not* for
 
 Copies are not a pricing axis. **NM is NM** — the market does not pay a premium for
 a better-centred NM raw single, and a PSA 10 is a PSA 10 regardless of how it looks
@@ -448,7 +739,7 @@ So per-copy exists for **trust and operations**, not margin:
 - pick/pack verifies the right physical card shipped
 - returns re-shelve with history intact
 
-### 2.6 QR / barcode
+### 2.9 QR / barcode
 
 Every copy gets a label on its sleeve encoding `copy_uid` (Code128 for a 1-D scanner,
 QR if phones are doing the scanning). Encode **only the opaque id** — never price or

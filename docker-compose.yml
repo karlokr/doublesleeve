@@ -59,7 +59,8 @@ services:
     volumes:
       - ps_html:/var/www/html
       - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/zz-cryptocards.ini:ro
-      - ./provisioning:/provisioning:ro
+      - ./ops:/provisioning:ro
+      - ./modules:/modules:ro
 
   phpmyadmin:
     image: phpmyadmin:5
@@ -94,7 +95,8 @@ services:
       TZ: ${TZ:-UTC}
     volumes:
       - ps_html:/var/www/html
-      - ./provisioning:/provisioning:ro
+      - ./ops:/provisioning:ro
+      - ./modules:/modules:ro
       - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/zz-cryptocards.ini:ro
 
   meilisearch:

@@ -71,7 +71,7 @@ all real search queries.
 
 ### One script owns the set taxonomy
 
-`provisioning/sets-tcgplayer.php` is the **only** thing allowed to create era or
+`ops/catalog/sets-tcgplayer.php` is the **only** thing allowed to create era or
 set categories. `setup.php` used to build a second, parallel tree from
 `pokemon-sets.csv` (pokemontcg.io series → `Base` > `Base (BS)`), and because
 `make provision` runs *after* `make sets-align`, it silently resurrected the tree
@@ -94,6 +94,62 @@ group is served by filtering; the second by the tree.
 
 Singles inverts this: set *is* the natural landing page, because a set is a finite
 collectible checklist in a way "booster boxes" never is.
+
+### Sealed carries its facts as features, not variants
+
+TCGplayer files a product under a **category** (the product line — `Pokemon`,
+`Pokemon Japan`) and a **group** (roughly a set). Sealed and singles share that
+taxonomy: the category carries a `sealedLabel` and a `nonSealedLabel`, so sealed
+is a label within the catalogue, never a parallel tree. Language sits at the
+category level, *above* the group — which is the same thing this shop means by
+saying sealed has no variants. An Elite Trainer Box is English or it is Japanese;
+the Japanese one is a different product at a different price, not a second SKU of
+the first.
+
+So sealed holds `Card Language` as a **feature**, under the same name singles use
+for their attribute group. One label, one question, read from wherever that
+product type keeps the answer — the combination for a card, the product for
+sealed. `Region` is kept alongside it and answers something else: which
+catalogue a product came out of, which governs numbering and release schedule.
+They agree today because every Western item we stock is an English print; a
+French box would be Western and not English, and the two would part company.
+
+Two places had to learn it, and they learned it differently, because the fact
+arrives differently.
+
+A **tile** used to derive its chips client-side, from the variant fragment in its
+own URL. That was useless for sealed, which has no fragment — and it turned out
+to be the wrong shape for cards too: the server knows the combination a tile is
+offering, so it never needed telling by the browser, and deriving them late meant
+every listing drew bare tiles first and chipped them a moment later, on load and
+again on every sort and facet.
+
+Both kinds are rendered server-side now, through the theme's per-product slot in
+the tile — nominally the reviews hook, and the only one that is a direct child of
+the info column. The column is a grid, so ordering the chips back to the top is
+one line of CSS. Chip order comes from the attribute id, which is the order the
+URL fragment carried, so the layout is unchanged: condition first for a raw card,
+and for a graded one the grader ahead of the tier it qualifies.
+
+Shipping this as a page-level payload instead would have failed twice over.
+`displayHeader` executes before `doProductSearch()`, so the header cannot know
+what the page is about to render; and a sort or facet re-renders the grid over
+AJAX, where fresh tiles arrive from the server and a payload does not.
+
+The one client-side path left is the printing expansion, which clones a tile per
+printing. It strips the chips it inherited and lets them be rebuilt from the
+rewritten URL — in the same task, so there is no frame in between.
+
+A **cart line** is keyed on the combination id, which is `0` for every sealed
+line at once; keyed on that alone, the first sealed line's chips were handed to
+all of them. Lines without a SKU are addressed by product instead.
+
+**On sealed that belongs to no set:** TCGplayer never leaves the group empty. It
+widens the group vocabulary instead — promo buckets, era buckets, standalone
+products — and flags the non-expansion ones with `isSupplemental` so they can be
+included or excluded. Every sealed item we hold currently maps to a real set, so
+nothing forces the question yet; when it does, the answer is a wider `Set`
+vocabulary plus a supplemental flag, not a nullable `Set`.
 
 ### Migration cost is zero right now
 
@@ -164,7 +220,7 @@ Each slab remains its own product, quantity 1, photographed individually.
 |---|---|
 | Sealed Product Type | Kept as data, but NOT as a facet: the Sealed subcategories are the same seven values, so two filters described one axis one rail apart, and the feature's values were never translated |
 | Set / Release Year | |
-| **Print Region** | **US / EU / Asia-English / JP — different print runs, different prices** |
+| **Region** | **Western / Japanese, derived from the set — the catalogue axis every product carries. A separate "Print Region" feature (US / EU / Asia-English / JP) was retired: the idea is sound, but every row of it was one hardcoded literal, and it read as a duplicate of Region one rail apart** |
 | **Pack Count / Cards per Pack** | **Lets buyers compare cost-per-pack across products** |
 | **Promo Included** | **ETB promos drive purchase decisions** |
 | **Seal Status** | **Factory Sealed / Reshrink Risk / Opened — the trust axis in sealed** |
@@ -264,6 +320,44 @@ survive — `SM Base Set` and `XY Base Set` would both collapse to `Base Set` an
 collide with the 1999 set. Verified across all 217 groups: 68 renamed, **zero
 collisions**.
 
+### A trail of one is not a trail
+
+The cart and the other standalone pages sit under no category, so PrestaShop
+emits a breadcrumb containing nothing but `Home` — a word with nowhere to go,
+charging a full band of padding for it. The wrapper is hidden whenever the trail
+holds a single item, keyed on that rather than on the page, so anything that ends
+up in the same state loses it too.
+
+The trail was also carrying the page's top margin, so hiding it put the heading
+against the header. Its own bottom margin is handed to the page instead: content
+lands where a page **with** a trail puts it, just without the band above.
+
+### The category header is the card row
+
+A category page leads with a row of cards for its children, not with a title and
+a wall of subcategory chips. The row **is** the header: the title is left for
+assistive technology only and the chips are not drawn.
+
+That swap used to happen in script — hide the title, delete the chips, append the
+row — so every arrival at a category drew the plain chips first and replaced them
+a beat later. The two look nothing alike, which is exactly the kind of change a
+shopper notices on a page they have loaded before.
+
+The row is rendered by the server now, and the title and chips are suppressed in
+CSS keyed on the row being present, so nothing is drawn that is about to be
+thrown away. With both gone the header is an empty box still charging its own
+padding and a bottom **rule** — a divider under nothing, reading as a line above
+the cards — so that is collapsed under the same condition; a description or cover
+still flows on its own spacing. What stays with the client is the arrows and the
+drag-to-scroll — behaviour, which has nothing to show.
+
+The two region tiles are pinned to the same Pokémon each region is known for, in
+its own language: Mega Charizard X ex for Western, Mega Rayquaza ex for Japanese.
+The pair reads as a choice of catalogue rather than two unrelated cards. Both are
+the current chase card for their region and both are full **artwork**, not the
+gold textures that outrank them on price — a tile is a picture at 240px, and a
+flat gold card reads as nothing at that size whatever it is worth.
+
 ### Set artwork
 
 | Source | Sets | How |
@@ -336,6 +430,31 @@ injected through `actionMainMenuModifier`, the same hook that prunes the menu.
 `Browse Pokémon Sets` stays top-level only while Pokémon is the only game. When a
 second TCG arrives it moves under its own game, because a set list means nothing
 across games.
+
+### The same matrix on a phone
+
+The desktop panel is a matrix: sections down the left, and for whichever is
+chosen, a region strip above a grid of eras. A phone cannot hold that side by
+side, and Hummingbird's own mobile menu could not hold it at all — it collapsed
+the injected structure to a zero-height strip, so the hamburger opened nothing.
+
+The drawer is built from the **same markup** the panel uses rather than from a
+second copy of the data, so anything the server adds appears in both without
+being told twice. It becomes an accordion: one section open at a time, its
+regions as chips, its eras as rows carrying the same set artwork.
+
+What changes is the verbs. Hover picks a region on a desktop and there is no
+hover on a phone, so a region is tapped. Which raises the thing worth writing
+down: **the two section kinds behave differently, and the drawer has to read
+both.** Under Singles a region is a category, so eras arrive grouped by region
+and the chips filter between those groups. Under Sealed and Graded a region is a
+facet, so there is one flat list of product types or graders and the chips are
+links to a filtered page. Assuming the first shape is what left Sealed and
+Graded as dead rows in the first cut.
+
+A "view all" row follows whichever region is selected, so section, section ×
+region, and era are each one tap from the drawer opening — which is the whole
+matrix, and the reason region is a category rather than a filter.
 
 ### Region has to enter the menu before Japanese stock does
 
@@ -474,6 +593,31 @@ order of value:
 8. Buylist / master-set tracker.
 
 
+## Sorting and filtering rebuild more than the grid
+
+`updateProductList` is PrestaShop's AJAX re-render, and the block it replaces is
+bigger than the product grid: it takes the **category header** and the **sort
+bar** with it. Everything the theme injects into either is destroyed on every
+sort and every facet change.
+
+That is not cosmetic. The section cards live in the category header, so losing
+them exposed the raw era pill wall they were built to replace; and the Filters
+button lives in the sort bar, so losing it removed the only way into the filter
+drawer — the page looked like it had reverted to an older design the moment you
+sorted it.
+
+**The rule: one handler, rebuilding every piece of listing chrome, in a fixed
+order.** It was previously three separate `updateProductList` listeners
+registered in three places, two of which only re-ran tile decoration, so what
+happened after a sort depended on registration order.
+
+Anything re-run on that path has to separate **one-time page furniture** from
+**per-render work**. The filter drawer is the example: reparenting the column to
+`<body>`, the backdrop and the Escape handler must happen exactly once, while
+the button must be rebuilt every time. Doing both in one pass meant re-wiring
+after a sort stacked a duplicate backdrop and another key listener on each
+interaction.
+
 ## Tile expansion must honour every SKU-selecting facet
 
 Listing tiles are expanded client-side so each printing gets its own tile
@@ -488,9 +632,35 @@ reporting "20 listings across 10 cards". The filter was applied and then reverse
 one layer up, in the sets where the two runs differ several-fold in price.
 
 The rule: **any facet that selects a SKU rather than a product must be forwarded
-to the expansion endpoint.** Today that is `conditions` and `printings`; a facet
-reader (`activeFacet(name)`) is shared between them so adding a third is one line
-each side.
+to the expansion endpoint.** Today that is `conditions`, `printings` and
+`gradings`; a facet reader (`activeFacet(name)`) is shared between them so adding
+a fourth is one line each side.
+
+### What earns its own tile
+
+Printing, always — that is what the expansion was built for. And every **graded**
+copy: a PSA 10 and a CGC 9 of one card are no more the same purchase than a 1st
+Edition and an Unlimited are. Different holder, different label, different
+market, and each slab is a single serialised object. So the expansion key is the
+printing plus, for graded copies, the grader *and* the tier.
+
+Raw copies still collapse to one tile per printing, showing the best condition in
+stock. A shopper choosing between Near Mint and Lightly Played is picking a
+quality of the same thing and does that on the product page; a shopper choosing
+between a raw copy and a PSA 10 is choosing between two different products.
+
+Each graded tile carries its own slab composite, its own price and a grader chip
+beside the tier. Two traps:
+
+- A lone graded variant must still be **applied** to its tile even though there
+  is nothing to expand it against. Filter the browser to CGC and a card whose
+  only CGC copy is a 10 has a single variant — skipped by a naive `< 2` guard, so
+  the tile kept the product cover (the loose card scan) while its own chips said
+  CGC 10.
+- Prices must be formatted server-side. Relabelling a tile with `'$' + toFixed(2)`
+  in JS is the English format written as a literal: on the French storefront an
+  expanded tile read `$5899.96` beside an untouched one reading `1 739,35 $`, and
+  every graded copy is an expanded tile.
 
 Facets that select a *product* need no forwarding — `Print Run` is a feature of
 the set the product sits in, so PrestaShop's own filtering is sufficient and

@@ -9,7 +9,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends cron \
  && rm -rf /var/lib/apt/lists/*
 
-COPY provisioning/crontab /etc/cron.d/cryptocards
+COPY ops/crontab /etc/cron.d/cryptocards
 RUN chmod 0644 /etc/cron.d/cryptocards \
  && touch /var/log/cryptocards-price.log \
           /var/log/cryptocards-search.log \

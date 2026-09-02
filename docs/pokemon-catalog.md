@@ -67,19 +67,120 @@ Create only the combinations you physically have. If you stock one NM English
 Normal copy, that product has exactly one combination. Add others as you acquire
 them. PrestaShop's product page handles a single combination fine.
 
-## Graded slabs are separate products
+## Grading is a copy-state axis, not a separate product
 
-Graded cards live under **Graded Cards**, one product per slab, quantity 1 — not
-as a "Grade" attribute on the raw card.
+A PSA 10 Base Set Charizard is the same card as the raw one — same set, number
+and artwork — in a different physical state, exactly as Lightly Played is. It
+lives on the card's own listing as a combination of two attribute groups:
 
-A PSA 10 is a serialised, one-of-one item: it has its own cert number, its own
-photo of that exact slab, and its own price that moves independently of raw
-copies. Modelling grade as an attribute would imply slabs are interchangeable at a
-given grade, break your cert-number tracking, and multiply every raw card's
-combination count by ~15 for stock you'll rarely hold.
+- **Grading**: Ungraded, PSA, BGS, CGC, TAG
+- **Condition**: NM–DMG for ungraded copies; the company's own tier labels for
+  slabs (`10 Gem Mint`, `10 Pristine`, `10 Black Label`, `9.5 Gem Mint`, then
+  plain numerals below 9.5, where no company splits a numeral into tiers)
 
-Record Grading Company, Grade and Certification Number as features on the slab
-product, and photograph the actual slab.
+The (Grading, Condition) pair identifies a slab market — a BGS 10 Pristine, a
+BGS 10 Black Label and a PSA 10 Gem Mint are three different prices wearing the
+same numeral — and combinations constrain the pair, so a raw-only card never
+offers "10 Gem Mint" and (PSA, 10 Black Label) cannot exist.
+
+### Four graders, because we hold four frames
+
+The shop carries **PSA, BGS, CGC and TAG only**. That is not a preference about
+grading companies — a graded SKU's photograph is the card composited into *its*
+grader's holder, and `ops/assets/slab-templates` holds frames for those four and
+nobody else. A company in the vocabulary with no frame behind it is a filter a
+shopper can select to be shown nothing, and an intake path that would produce a
+slab photographed in the wrong holder.
+
+ACE and SGC shipped in the original vocabulary and never had frames or stock;
+`ops/migrations/retire-ungraded-graders.php` removes them and refuses to touch
+any company that turns out to have combinations, so it cannot delete stock. To
+carry a fifth company, add its frame first — the migration's list is the same
+list the templates directory is.
+
+### Grader and grade are one badge
+
+They are rendered as a single chip, in the form the hobby writes: **`PSA 10`**,
+`BGS 9.5`, `TAG 10 GEM MT`. Apart they read as two unrelated facts and cost
+twice the room, when the grade *is* the condition and the company is what makes
+the numeral mean anything.
+
+The qualifier keeps its accepted short form — `Gem Mint` → `GEM MT` (which is
+what PSA prints on the label itself), `Pristine` → `PRIS`, `Black Label` →
+`BLK LBL`. An ungraded card is untouched: it has a condition and no grader, so
+there is nothing to fold.
+
+
+An earlier revision modelled each slab as its own product under a Graded
+category tree, on the grounds that a slab is a serialised one-of-one with its
+own photo and price. Every clause of that is true and describes a **SKU**, not a
+separate product: combinations carry their own stock (quantity 1), price impact
+and photo (the scan composited into the slab frame). What the split actually
+cost was the card's identity — the same Charizard listed twice, and "everything
+graded by PSA" unfilterable. Combination bloat never materialises because only
+combinations that physically exist are created (previous section). Serial-level
+identity (cert number, photos of the actual slab) belongs to the copies module,
+which serialises raw stock the same way.
+
+Graded prices come from sold auctions, not from a multiplier on the raw price —
+see the graded pass in `ops/pricing/price-sync.php`.
+
+## TCGplayer printing names are only unambiguous inside their group
+
+Jungle and Team Rocket ran 1st Edition and Unlimited within one set, so
+TCGplayer's SKUs there say "1st Edition Holofoil" and "Unlimited Holofoil" and
+need nothing from us.
+
+Base Set is the exception, because its 1st Edition run is **shadowless**.
+TCGplayer therefore files 1st Edition and shadowless Unlimited together in group
+1663 (`Base Set (Shadowless)`) and leaves group 604 (`Base Set`) holding the
+shadowed Unlimited run on its own — with nothing to disambiguate against, those
+SKUs are named bare `Holofoil` and `Normal`.
+
+That is correct on TCGplayer, where the group is on screen, and wrong here. This
+shop lists shadowed and shadowless side by side and sorts them together, so a
+tile reading "Holofoil" next to one reading "1st Edition Holofoil" invites the
+reader to assume the first is the earlier printing. It is the later one, and
+worth an order of magnitude less.
+
+`ops/lib/printing.php` holds the rename, keyed on the TCGplayer **group id**
+(the set name is localised and shared across regions). `sku-rebuild` applies it
+when building combinations, so a rebuild cannot undo it, and
+`ops/migrations/base-set-unlimited.php` applies it to stock that already exists.
+
+It is a **naming** change only. The price engine matches on `tcgplayer_subtype`
+in `cc_price_source_map`, which keeps TCGplayer's own name, so renaming cannot
+put a SKU on the wrong market price. The values it renames to already exist in
+the vocabulary (the shadowless group uses them), so `align-tcgplayer.php` has
+nothing new to prune.
+
+### Edition and print run are different facts
+
+They are stored in different places, and conflating them is the easy mistake:
+
+| Fact | Lives on | Why |
+|---|---|---|
+| **Print Run** — Shadowless / Shadowed | the **product**, as a feature | Which pressing this listing is. The two runs are separate TCGplayer groups, so separate products. |
+| **Edition** — 1st Edition / Unlimited | the **SKU**, as the Printing attribute | One shadowless Base Set product holds *both* a 1st Edition and an Unlimited combination, so it cannot be a product-level fact. |
+
+`Print Run` also carries legacy `1st Edition` and `Unlimited` values that nothing
+uses, left in place as unused vocabulary rather than deleted.
+
+The stored value is `Shadowed`; the chip **reads "Not Shadowless"**, in every
+place it appears and in both languages. Only one of the two runs is worth
+identifying — a shopper hunting the expensive pressing is checking whether this
+is it, and "Shadowed" answers a question they did not ask. One translation key
+serves the listing tile, the product page and the cart line, so the fact cannot
+end up worded two ways.
+
+Both halves must be complete or a facet only works in one direction: only the
+shadowless side was ever stamped, so a shopper could filter to Shadowless and had
+no way to ask for the commoner, cheaper shadowed run sitting beside it.
+
+`ops/audits/audit-editions.php` checks both — that every SKU in an edition-split
+set states its edition, and that every product in a shadowless/shadowed pair
+states its print run. It finds the pair from the category names, so a second
+shadowless set would be covered without editing the audit.
 
 ## Sets are categories, not a feature
 
@@ -117,7 +218,7 @@ and tax**, and neither is driven by storefront language:
 If you still want a distinct en-CA storefront (its main real benefit is `YYYY-MM-DD`
 dates and `$` rather than `CA$` for CAD), add it in *International → Localization →
 Languages* with locale `en-CA` and a unique two-letter ISO code, then duplicate the
-English translations. Set `LOCALES` in `provisioning/setup.php` if you want it
+English translations. Set `LOCALES` in `ops/setup/setup.php` if you want it
 provisioned automatically.
 
 ### Auto-switching currency by visitor location

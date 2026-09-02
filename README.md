@@ -47,33 +47,39 @@ make reset         DESTROY all data and reinstall from scratch
 
 - **Shop identity** — name, and stock rules suited to singles: overselling denied,
   quantities shown, low-stock warning at 3.
-- **Languages** — English (`en-US`) and Canadian French (`fr-CA`).
-- **Currencies** — CAD (default) and USD, both with CLDR-correct precision.
-- **Attributes** (variant-generating) — Condition, Card Language, Finish. Only
-  these three: they are what changes the physical item you ship.
-- **Features** (filterable metadata) — 32 of them, including the Pokémon facet
-  (all 1,025 species), Rarity, Pokédex №, Stage, Regulation Mark, Format Legality,
-  Print Run, slab data (Grade, Qualifier, Label Type, BGS subgrades), sealed data
-  (Print Region, Seal Status, Pack Count) and accessory data (Brand, Sleeve Size).
-- **Categories** — game-first: `Pokémon → Singles / Graded / Sealed / Accessories`,
-  with 174 sets across 17 series under Singles, plus a game-agnostic
-  219 categories total.
-- **Faceted search templates** — one per section, so Singles shows card filters and
-  Accessories shows brand/size filters instead of every filter everywhere.
-- **Storefront** — top menu rebuilt from the real categories (it ships pointing at
-  the demo ones), demo slider and "20% off clothes" banner removed, homepage text
-  replaced, set directory page generated. Caches are flushed at the end; the first
-  page load after is slow.
+- **Languages** — English (`en-US`) and Canadian French (`fr-CA`). Every UI string
+  the modules inject ships in both.
+- **Currencies** — CAD (default) and USD, rates maintained from the Bank of Canada.
+- **Attributes** (variant-generating, in selector order) — Card Language, Printing,
+  Grading, Condition. They describe the physical copy you ship; the Condition axis
+  carries both the raw trade grades (NM–DMG) and the slab tier labels
+  (`10 Gem Mint`, `10 Pristine`, `10 Black Label`, `9.5 Gem Mint`).
+- **Features** (filterable metadata) — Region, Set, Rarity, the Pokémon facet
+  (all 1,025 species), Card Number, Stage, Regulation Mark, Format Legality,
+  Print Run, Release Year, Artist, and the sealed facts (Seal Status, Pack Count).
+- **Categories** — `Pokémon → Singles → Western / Japanese → era → set`, with
+  Sealed organised by product type and Graded serving as the entry point to the
+  grading filter. See [docs/architecture.md](docs/architecture.md) for why region
+  is a tree level under Singles and a facet everywhere else.
+- **Faceted search templates** — per section, Region and Card Language at the top
+  of the rail.
+- **Storefront** — menu rebuilt from the real categories with region tabs and
+  stock-aware pruning, live homepage stats, set directory page.
 
-See [docs/information-architecture.md](docs/information-architecture.md) for why the
-tree is shaped this way, and
-[docs/operations-pipeline.md](docs/operations-pipeline.md) for the planned price
-engine, photo-intake pipeline and per-copy inventory model.
+See [docs/architecture.md](docs/architecture.md) for what this platform is and how
+the pieces fit, [docs/information-architecture.md](docs/information-architecture.md)
+for the tree's shape, [docs/operations-pipeline.md](docs/operations-pipeline.md)
+for the price engine, serialised inventory and intake pipeline, and
+[docs/image-pipeline.md](docs/image-pipeline.md) for how every image on the
+storefront is generated — cutouts, slab frames, card backs and set logos.
+
+[docs/tasks.md](docs/tasks.md) is the master task list: everything asked for that
+is not yet done, kept current in the same turn as the work.
 
 ## Look and feel
 
-The storefront runs a custom design system — dark surfaces with a rainbow-rare foil
-accent — delivered by the `cryptocards_theme` module rather than a fork of
+The storefront runs a custom design system — neutral chrome over dark surfaces —
+the card art is the colour — delivered by the `cryptocards_theme` module rather than a fork of
 Hummingbird, so the theme keeps taking upstream updates.
 
 ```bash
@@ -111,6 +117,23 @@ catalogues for development. A production shop should photograph its own stock �
 it is both the copyright-safe path and what buyers expect for graded and
 high-value singles.
 
+## Adding stock
+
+The seeders above are **dev fixtures**. Real stock enters one card at a time —
+the platform's unit of work is one copy of one card, and adding it touches
+nothing else:
+
+```bash
+make add-card GROUP=2545 NUMBER=SWSH075            # one Special Delivery Charizard, NM
+make add-card GROUP=23601 NUMBER=347/190 QTY=2 CONDITION="Lightly Played"
+```
+
+Region, set placement, derived titles in both languages, features, the
+corner-cut scan and the price-engine wiring all follow from the TCGplayer group
++ collector number match. If the listing already exists, the copy lands on the
+right SKU instead of minting a duplicate. This CLI is the same operation the
+photo-match admin flow (the copies module) will drive with a camera.
+
 ## Alignment with TCGplayer
 
 The catalogue mirrors TCGplayer's model — `category → group → product → SKU`, where
@@ -142,10 +165,12 @@ of that card. Both update live as the selectors change.
 
 **Two deliberate deviations, both load-bearing:**
 
-1. **Release year is inserted above sets.** TCGplayer's organisation is genuinely
-   flat — 217 groups, no series or era field. Rather than invent a taxonomy, the one
-   grouping applied is release year, taken from their own `publishedOn`, so the tree
-   stays navigable without introducing anything they don't publish.
+1. **Eras are inserted above sets, per region.** TCGplayer's organisation is
+   genuinely flat — 217 Western groups and 454 Japanese ones, no series field. A
+   flat list is not navigable, so sets are filed under the era/block collectors
+   actually shop by (`ops/lib/era.php`, `ops/lib/era-jp.php` — the Japanese block
+   list is its own, ADV/PCG/LEGEND are not Western eras renamed), beneath a print
+   region level (`ops/lib/region.php`).
 2. **Set artwork comes from pokemontcg.io.** TCGplayer publishes no set logos.
    114 of the 217 groups get artwork; the rest render clean without it.
 
@@ -168,12 +193,15 @@ Every physical single is its own record, so the shop can say *which* card you ar
 buying rather than just how many it has.
 
 ```bash
-make copies-init   # one card_copy per unit in stock (sealed excluded)
+make copies-init   # one card_copy per unit in stock (singles, graded, sealed)
 ```
 
-**7,378 copies across 276 products.** Sealed product is deliberately *not*
-serialised — one factory-sealed box is interchangeable with another, so it keeps
-plain quantity stock and always shows the stock photo.
+**7,914 copies.** Everything sellable is serialised: raw singles, graded slabs
+(as copies of the combination they live on) and sealed product. Sealed was
+originally excluded on the grounds that one factory-sealed box is interchangeable
+with another — true of the cards inside, false of the box, whose condition,
+dents, shrink-wrap and print run all vary. A buyer paying box prices wants to see
+the one being shipped.
 
 Each copy carries a short **serial** (`BW7S98CY`, Crockford-style alphabet with no
 I/L/O/U so a scuffed label can't be misread), ready to print as a QR on the sleeve.
@@ -181,19 +209,24 @@ I/L/O/U so a scuffed label can't be misread), ready to print as a QR on the slee
 
 ### Which photo a shopper sees
 
-Decided **per SKU**, not per product:
+Decided **per SKU**, not per product. The stock photo always owns the gallery —
+on the product page and in the listing tile — until the shopper picks a serial:
 
 | Situation | Shown |
 |---|---|
-| Sealed product | Stock photo, always |
-| 1 available, photographed | That copy's photo *becomes* the product image |
+| Any count, some photographed | Stock photo + **"choose your exact card"** picker |
 | 1 available, no photo yet | Stock photo + serial, labelled as a reference scan |
-| 2+ available, some photographed | Stock photo + optional **"choose your exact card"** gallery |
-| 2+ available, none photographed | Stock photo, no gallery |
+| 2+ available, none photographed | Stock photo, and that photography is pending |
+| All copies `stock_only` | Stock photo, and that these are sold by condition |
 
-A $14,000 shadowless Charizard is a one-of-one in practice, so a generic reference
-scan would be misleading — the buyer is paying for *that* card's condition. A $0.30
-common has eighteen interchangeable copies and photographing each is wasted labour.
+The stock photo is the best image on the page — for a graded copy it is the
+composited slab showing the holder and its label — so a listing never quietly
+downgrades itself to a snapshot nobody asked for. A one-of-one goes through the
+picker like anything else: you see the photograph when you choose to.
+
+Serialising is not photographing. A $0.30 common with eighteen interchangeable
+copies is flagged `stock_only` and says so, rather than promising a photo that is
+never coming.
 
 **Choosing is always optional.** Take no action and the oldest available copy ships
 (FIFO, which is also correct stock rotation). Nobody is forced through a gallery to
@@ -280,7 +313,7 @@ The full design, including the parts not yet built, is in
 ## Search
 
 Meilisearch backs the storefront search box via the `cryptocards_search` module in
-[provisioning/module](provisioning/module). PrestaShop's native search is a MySQL
+[modules](modules). PrestaShop's native search is a MySQL
 LIKE query — no typo tolerance and no synonyms — which fails the two most common
 card-shop queries: misspellings and trade slang.
 
