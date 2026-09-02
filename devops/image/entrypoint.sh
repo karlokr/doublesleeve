@@ -50,6 +50,13 @@ if [ "${INSTALLED:-0}" = "0" ]; then
     exec docker-php-entrypoint /tmp/docker_run.sh
 fi
 
+# The installer ships in the base image and is only ever renamed by its
+# entrypoint, never removed - so /install/ comes back on every single deploy and
+# is publicly reachable. On an installed shop it has no job left, and PrestaShop
+# itself nags to delete it. Remove it here rather than on the host, or the next
+# deploy simply puts it back.
+rm -rf /var/www/html/install /var/www/html/install.lock 2>/dev/null || true
+
 # 3. Replicas start at the same time and would migrate concurrently. A named
 #    lock in the database serialises them: the first replica migrates, the rest
 #    wait and then find nothing pending. GET_LOCK is released automatically if
