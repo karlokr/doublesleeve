@@ -143,9 +143,9 @@ Every guard runs before the build, and the tag is created only after the push,
 so a release can never name an image that does not exist.
 
   CI was abandoned rather than fixed. GitHub never allocated a hosted runner to
-  the private repo, which is billing; GitLab would have needed a runner stood up
-  and maintained for a single-developer project. The GitLab project at
-  gitlab.karlokrakan.me/karlokr/doublesleeve still exists and can be deleted.
+  the repo, which is a billing problem and not an engineering one. Nothing is
+  lost by releasing from a workstation: the version is still semantic, the image
+  still carries three tags, the release is still a real GitHub release.
 
 **f. Production runs as a Swarm stack — DONE.** `devops/prod/stack.yml`.
 Upgrading is changing `APP_IMAGE_TAG` and redeploying; nothing runs before or

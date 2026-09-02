@@ -249,10 +249,9 @@ is in `ps_configuration` and changing the environment variable does nothing.
 ## Releases are cut by hand
 
 There is no CI, deliberately. A hosted runner was never allocated to the GitHub
-repository, which is a billing matter rather than an engineering one; a
-self-hosted GitLab runner would have worked, but standing one up and maintaining
-it to serve a single-developer project is more infrastructure than the problem
-deserves.
+repository, which is a billing matter rather than an engineering one, and
+standing up and maintaining a self-hosted runner for a single-developer project
+is more infrastructure than the problem deserves.
 
 Nothing about the artifact changes. The version is still semantic, the image
 still carries three tags, the release is still a real GitHub release with the

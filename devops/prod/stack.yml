@@ -68,14 +68,21 @@ services:
         reservations: { memory: 1G }
       # Ingress is devops/prod/traefik-stack.yml, which owns the `proxy`
       # network, the `websecure` entrypoint and the `sslresolver` resolver named
-      # below. websecure already sets tls + certresolver at the entrypoint, so
-      # the router needs a host rule and nothing more. Port 80 is the container
-      # port; Traefik terminates TLS and http is redirected to https upstream.
+      # here. Port 80 is the container port; Traefik terminates TLS and http is
+      # redirected to https upstream.
       labels:
         traefik.enable: "true"
-        traefik.http.routers.doublesleeve.rule: Host(`${PS_DOMAIN}`)
+        # This service sits on two networks. The provider defaults to proxy, but
+        # say it, so adding a third network later cannot make routing ambiguous.
+        traefik.swarm.network: proxy
+        traefik.http.routers.doublesleeve.rule: Host(`${PS_DOMAIN}`) || Host(`www.${PS_DOMAIN}`)
         traefik.http.routers.doublesleeve.entryPoints: websecure
-        traefik.http.services.doublesleeve.loadbalancer.server.port: "80"
+        traefik.http.routers.doublesleeve.priority: "1000"
+        traefik.http.routers.doublesleeve.tls.certresolver: sslresolver
+        traefik.http.routers.doublesleeve.tls.domains[0].main: ${PS_DOMAIN}
+        traefik.http.routers.doublesleeve.tls.domains[0].sans: "www.${PS_DOMAIN}"
+        traefik.http.routers.doublesleeve.service: doublesleeve
+        traefik.http.services.doublesleeve.loadbalancer.server.port: 80
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
       interval: 15s
