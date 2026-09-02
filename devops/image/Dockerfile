@@ -43,6 +43,9 @@ COPY src/ops/ /provisioning/
 
 COPY devops/image/php/custom.ini /usr/local/etc/php/conf.d/zz-cryptocards.ini
 
+# zz- so it loads after the base image's own conf and cannot be overridden.
+COPY devops/image/apache/proxy-ssl.conf /etc/apache2/conf-enabled/zz-proxy-ssl.conf
+
 # Ownership is set by COPY --chown above rather than by a RUN chown afterwards.
 # A chown rewrites every file it touches into a new layer, so the modules were
 # being stored twice: once owned by root, once by www-data.
