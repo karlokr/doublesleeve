@@ -158,9 +158,8 @@ turns a bad migration into an outage. Swarm covers the rest: `start-first` plus
 a healthcheck plus `failure_action: rollback`, so a bad image never replaces a
 good one.
 
-  The constraint to revisit rather than delete: every service is pinned to one
-  node, because local volumes do not follow a task elsewhere. More than one
-  replica, or a second node, needs the volumes on shared storage first.
+  Single node, so nothing is placed. A second node would need shared storage for
+  `img/` and the database before it meant anything.
 
 **g. One ordered `make bootstrap`, and a second environment.** Every target
 needed to build a shop from nothing exists, but the order is tribal knowledge

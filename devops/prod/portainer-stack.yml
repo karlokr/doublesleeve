@@ -23,11 +23,6 @@ services:
     command: -H unix:///var/run/docker.sock
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          # Same reason as the shop: the data volume is local and does not
-          # follow a task to another node.
-          - "node.labels.doublesleeve==true"
       labels:
         traefik.enable: "true"
         traefik.swarm.network: proxy

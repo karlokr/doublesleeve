@@ -297,18 +297,10 @@ what it does to a deploy: `start-first` plus a healthcheck plus
 `failure_action: rollback` means changing a tag is safe on its own, with no
 script and no one watching it.
 
-- **Host:** one node with enough disk for `img/` to grow, labelled once:
-
-  ```bash
-  docker node update --label-add doublesleeve=true <node>
-  ```
-
-  Every service is constrained to that label, because local volumes do not
-  follow a task to another node — without it a reschedule comes up against
-  empty volumes. A missing label leaves tasks pending, which is the failure you
-  want: visible, rather than a shop that returns with no images. Raising
-  replicas or adding a node means moving those volumes to shared storage first,
-  so this is the constraint to revisit deliberately rather than delete.
+- **Host:** one node with enough disk for `img/` to grow. Single node, so there
+  is nothing to place: volumes are local and the only node is this one. Adding a
+  second node is what would change that, and the thing to sort out then is
+  shared storage for `img/` and the database, not placement rules.
 - **Registry:** GitHub Container Registry, since the repo is already there.
 - **Images:** on a snapshotted volume, or object storage behind a CDN once the
   catalogue grows — that also takes them out of the deploy path entirely.

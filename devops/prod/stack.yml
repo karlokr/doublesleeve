@@ -40,18 +40,6 @@ services:
     networks: [proxy, internal]
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          # Local volumes do not follow a task to another node, so a reschedule
-          # elsewhere would come up against empty ones. Label the node that
-          # holds them, once:
-          #
-          #   docker node update --label-add doublesleeve=true <node>
-          #
-          # If that label is missing the task stays pending, which is the right
-          # failure: visible, and not "the shop came back with no images".
-          - "node.labels.doublesleeve==true"
-        max_replicas_per_node: 1
       update_config:
         # One at a time, and only after the new task is actually healthy. This is
         # what makes "change the tag and redeploy" safe on its own.
@@ -103,9 +91,6 @@ services:
     networks: [internal]
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          - "node.labels.doublesleeve==true"
       restart_policy:
         condition: any
       resources:
@@ -126,9 +111,6 @@ services:
     networks: [internal]
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          - "node.labels.doublesleeve==true"
       restart_policy:
         condition: any
 
@@ -150,9 +132,6 @@ services:
     networks: [internal]
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          - "node.labels.doublesleeve==true"
       restart_policy:
         condition: any
 
