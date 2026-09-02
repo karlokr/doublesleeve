@@ -111,10 +111,9 @@ image and mounts **only** the state paths — `img/`, `var/`, `upload/`, `downlo
 `app/config` — never `/var/www/html` itself, which would hide the baked code.
 Built and verified: the modules, `/provisioning` and the php ini are all inside.
 
-  Still to do before it deploys for real: push to GHCR from CI, and simplify
-  `install-theme-module.sh`, which only copies files because the module used to
-  live outside the image. In production it should register hooks and nothing
-  else.
+  Still to do: simplify `install-theme-module.sh`, which only copies files
+  because the module used to live outside the image. In production it should
+  register hooks and nothing else.
 
 **b. Put the images on a diet, before engineering any backup for them.**
 3.6 GB, of which 703 MB is originals kept at source resolution (largest 4.7 MB)
@@ -148,7 +147,22 @@ so a release can never name an image that does not exist.
   and maintained for a single-developer project. The GitLab project at
   gitlab.karlokrakan.me/karlokr/doublesleeve still exists and can be deleted.
 
-**f. One ordered `make bootstrap`, and a second environment.** Every target
+**f. Production runs as a Swarm stack — DONE.** `devops/prod/stack.yml`.
+Upgrading is changing `APP_IMAGE_TAG` and redeploying; nothing runs before or
+after, because in Swarm there is nowhere for a script to run. So the container
+migrates itself on start (`devops/image/entrypoint.sh`), and the ledger makes
+that cheap. Replicas serialise on a `GET_LOCK`, a first run with no shop tables
+skips migrations rather than running against tables that do not exist, and a
+failed migration logs loudly but still starts, because taking the service down
+turns a bad migration into an outage. Swarm covers the rest: `start-first` plus
+a healthcheck plus `failure_action: rollback`, so a bad image never replaces a
+good one.
+
+  The constraint to revisit rather than delete: every service is pinned to one
+  node, because local volumes do not follow a task elsewhere. More than one
+  replica, or a second node, needs the volumes on shared storage first.
+
+**g. One ordered `make bootstrap`, and a second environment.** Every target
 needed to build a shop from nothing exists, but the order is tribal knowledge
 and order-sensitive — `setup.php` recreates taxonomy the align scripts delete,
 which has resurrected retired data twice. The sequence is written down at the
