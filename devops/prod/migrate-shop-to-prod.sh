@@ -93,14 +93,22 @@ sys.stdout.write(s)
                && chown www-data:www-data /var/www/html/app/config/parameters.php'"
 
 # ------------------------------------------------------------------ 4. urls ---
+# Read the prefix out of parameters.php rather than assuming ps_. PrestaShop
+# randomises it per install; this shop is cc_, and hardcoding the wrong one
+# means these statements match zero rows and report success.
 # The database still says localhost. Until this changes, every generated link,
 # asset and redirect points at a machine the customer cannot reach.
-say "pointing the shop at $DOMAIN"
+PREFIX=$(docker run --rm -v "$LOCAL_HTML_VOL":/h alpine \
+    grep -o "'database_prefix' => '[^']*'" /h/app/config/parameters.php \
+    | sed "s/.*=> '//;s/'//")
+[ -n "$PREFIX" ] || stop "could not read database_prefix from parameters.php"
+
+say "pointing the shop at $DOMAIN (prefix ${PREFIX})"
 remote "docker exec -i $PROD_DB_CT mariadb -u'$P_DB_USER' -p'$P_DB_PASS' '$P_DB_NAME'" <<SQL
-UPDATE ps_shop_url SET domain='$DOMAIN', domain_ssl='$DOMAIN', physical_uri='/';
-UPDATE ps_configuration SET value='$DOMAIN'
+UPDATE ${PREFIX}shop_url SET domain='$DOMAIN', domain_ssl='$DOMAIN', physical_uri='/';
+UPDATE ${PREFIX}configuration SET value='$DOMAIN'
     WHERE name IN ('PS_SHOP_DOMAIN','PS_SHOP_DOMAIN_SSL');
-UPDATE ps_configuration SET value='1'
+UPDATE ${PREFIX}configuration SET value='1'
     WHERE name IN ('PS_SSL_ENABLED','PS_SSL_ENABLED_EVERYWHERE');
 SQL
 
