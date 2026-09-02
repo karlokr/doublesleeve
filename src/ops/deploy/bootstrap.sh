@@ -122,8 +122,9 @@ fi
 # recreates - so they must follow step 2, and setup.php must never run again
 # after them.
 if step "set taxonomy"; then
-    run "tcgplayer sets" php_run catalog/sets-tcgplayer.php
-    run "collectr names" php_run catalog/align-collectr.php
+    run "tcgplayer sets"    php_run catalog/sets-tcgplayer.php
+    run "tcgplayer sets jp" php_run catalog/sets-tcgplayer.php Japanese
+    run "collectr names"    php_run catalog/align-collectr.php
     run "facets"         php_run setup/facets.php
     run "cms pages"      php_run setup/pages.php
 fi
@@ -152,6 +153,13 @@ fi
 # downstream - titles, SKUs, facets - reads this vocabulary.
 if step "align vocabularies"; then
     run "tcgplayer alignment" php_run catalog/align-tcgplayer.php
+    # --rehome is not a repair option, it is the only thing that files each
+    # product under its set AND stamps the Set feature. Without it the Set facet
+    # does not exist - "missing features skipped: Set" - and the storefront
+    # reports zero sets represented while holding a thousand cards.
+    # Products have to exist first, so it cannot live with the taxonomy in step 4.
+    run "re-home western"  php_run catalog/sets-tcgplayer.php Western --rehome
+    run "re-home japanese" php_run catalog/sets-tcgplayer.php Japanese --rehome
 fi
 
 # 8 ------------------------------------------------------------------------

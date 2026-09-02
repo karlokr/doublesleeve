@@ -232,7 +232,18 @@ foreach ($seed['singles'] as $index => $card) {
         continue;
     }
 
-    $setCode = preg_match('/\(([^)]+)\)$/', $card['set_category'], $m) ? $m[1] : 'PKM';
+    /**
+     * From the data, not parsed out of the set name. It used to be scraped from
+     * a bracketed suffix ("Base (BS)" -> BS), which broke silently the moment
+     * the set names were corrected to match the TCGplayer taxonomy: every card
+     * fell back to "PKM", so references collided across sets - card 4 of one set
+     * matching card 4 of another - and the graded seed could not find anything.
+     */
+    $setCode = (string) ($card['set_code'] ?? '');
+    if ($setCode === '') {
+        warn('no set_code for ' . $card['name']);
+        continue;
+    }
     $reference = sprintf('PKM-%s-%s', $setCode, preg_replace('/[^A-Za-z0-9]/', '', (string) $card['number']));
 
     if (existingByReference($reference) !== null) {
