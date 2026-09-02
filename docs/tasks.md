@@ -144,15 +144,17 @@ PHP, JS and shell syntax, both compose files parse, and the image builds
 PR (patch by default), builds and pushes to GHCR tagged with the version, the
 sha and `latest`, then creates the git tag and GitHub release.
 
-  **Blocked on the account, not the code.** Both workflows register as `active`
-  and Actions is `enabled` on the repo, but every run — including a three-line
-  smoke test with nothing in it — ends instantly in `startup_failure` with
-  `path: BuildFailed`. That rules the workflow files out. It is almost always
-  exhausted Actions minutes on a private repository, which the API would not
-  confirm without a wider token scope. Check
-  github.com/settings/billing; the alternatives are making the repo public
-  (Actions are free there) or running the release build from the machine with
-  `make image-push`, which needs no CI at all.
+  **Workflows are correct; hosted runners are not being allocated.** Evidence,
+  so this is not re-diagnosed from scratch: a workflow whose entire content is
+  `runs-on: ubuntu-latest` / `steps: [- run: echo ok]` fails in 3 seconds with
+  `runner: ""`, zero steps recorded and no log blob. Nothing in a workflow file
+  can cause that - the job is never picked up. Earlier runs failed even earlier,
+  at `startup_failure`, so something did change; the remaining limit is on
+  GitHub's side (spending limit or Actions minutes on a private repository).
+
+  Until a runner is available, `make image-push` builds and pushes the same
+  image from a developer machine after `docker login ghcr.io`. The release
+  workflow needs no change - it will work the first time a runner picks it up.
 
   The `release/production` branch and the `major` / `minor` labels are created.
 
