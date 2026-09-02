@@ -81,6 +81,21 @@ step('Shop identity');
 Configuration::updateValue('PS_SHOP_NAME', SHOP_NAME);
 ok('PS_SHOP_NAME = ' . SHOP_NAME);
 
+/**
+ * Production sits behind a TLS-terminating proxy, so the container itself only
+ * ever speaks plain http. With PS_SSL_ENABLED off, PrestaShop decides the
+ * canonical URL is http:// and 302s every https request down to it - and the
+ * proxy 301s straight back up. That is an infinite redirect loop on the
+ * homepage, ERR_TOO_MANY_REDIRECTS, with nothing in the logs but a wall of 302s.
+ *
+ * PrestaShop reads X-Forwarded-Proto in Tools::usingSecureMode(), so with these
+ * on it correctly sees the original request as secure. Asserted here rather than
+ * left to the installer's --ssl flag, which only applies on a fresh install.
+ */
+Configuration::updateValue('PS_SSL_ENABLED', 1);
+Configuration::updateValue('PS_SSL_ENABLED_EVERYWHERE', 1);
+ok('https enforced (canonical URLs are https, no redirect loop behind Traefik)');
+
 // Cards are sold as individual physical items; showing "in stock" counts and
 // blocking oversell is the whole game for singles.
 Configuration::updateValue('PS_STOCK_MANAGEMENT', 1);

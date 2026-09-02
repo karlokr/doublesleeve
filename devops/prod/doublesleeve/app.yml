@@ -56,9 +56,11 @@ services:
       PS_LANGUAGE: ${PS_LANGUAGE:-en}
       PS_COUNTRY: ${PS_COUNTRY:-ca}
       PS_ALL_LANGUAGES: "0"
-      # Traefik terminates TLS, so the installer talks plain http to itself.
-      # HTTPS for the storefront is set in configuration, not here.
-      PS_ENABLE_SSL: "0"
+      # 1, not 0. This is what the installer writes into ps_configuration as
+      # PS_SSL_ENABLED, and it decides whether the storefront's canonical URLs
+      # are https. With 0, PrestaShop 302s every request down to http and
+      # Traefik 301s it back up: an infinite redirect loop.
+      PS_ENABLE_SSL: "1"
       # Must stay 0: the shim it installs becomes the Apache DirectoryIndex and
       # unconditionally redirects to index.php, which with friendly URLs
       # resolves back to "/" - an infinite 302 loop.
