@@ -177,6 +177,9 @@ fi
 if step "facets and search index"; then
     run "facets"       php_run setup/facets.php
     run "search index" php_run catalog/search-index.php
+    # The entrypoint does this on every start too; here so a first install
+    # serves friendly URLs without waiting for a restart.
+    run "htaccess"     php_run deploy/htaccess.php
 fi
 
 # --------------------------------------------------------------------------

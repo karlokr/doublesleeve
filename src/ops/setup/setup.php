@@ -96,6 +96,12 @@ Configuration::updateValue('PS_SSL_ENABLED', 1);
 Configuration::updateValue('PS_SSL_ENABLED_EVERYWHERE', 1);
 ok('https enforced (canonical URLs are https, no redirect loop behind Traefik)');
 
+// Friendly URLs. The matching Apache rules are written by
+// src/ops/deploy/htaccess.php, which runs on every container start because the
+// web root is not a volume.
+Configuration::updateValue('PS_REWRITING_SETTINGS', 1);
+ok('friendly URLs on');
+
 // Cards are sold as individual physical items; showing "in stock" counts and
 // blocking oversell is the whole game for singles.
 Configuration::updateValue('PS_STOCK_MANAGEMENT', 1);

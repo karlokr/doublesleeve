@@ -123,4 +123,11 @@ fi
 mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWD" -N -B \
     -e "SELECT RELEASE_LOCK('cc_migrate')" >/dev/null 2>&1 || true
 
+# Friendly URLs are Apache rewrites, and the rules live in a .htaccess that
+# PrestaShop writes into the web root - which is not a volume, so it is gone on
+# every deploy. Without it every link off the homepage is a bare Apache 404.
+log "regenerating .htaccess"
+su -s /bin/sh -c "php /provisioning/deploy/htaccess.php" www-data || \
+    log "!! .htaccess generation failed - friendly URLs will 404"
+
 exec docker-php-entrypoint /tmp/docker_run.sh
