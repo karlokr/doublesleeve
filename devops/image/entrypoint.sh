@@ -17,6 +17,14 @@ log() { printf '[entrypoint] %s\n' "$1"; }
 : "${DB_PORT:=3306}"
 : "${CC_MIGRATE:=1}"
 
+# The back office. PrestaShop's installer hardcodes `assets:install admin-dev`
+# and aborts on any other name, so the install must happen with admin-dev and
+# be renamed afterwards. Keep one user-facing variable and handle that here:
+# bootstrap.sh renames it after installing, and every later start renames it
+# again, because admin/ is not a volume and arrives fresh from the image.
+export CC_ADMIN_FOLDER="${PS_FOLDER_ADMIN:-admin}"
+export PS_FOLDER_ADMIN=admin-dev
+
 if [ "$CC_MIGRATE" != "1" ]; then
     log "CC_MIGRATE=$CC_MIGRATE, skipping migrations"
     exec docker-php-entrypoint /tmp/docker_run.sh
@@ -56,6 +64,13 @@ fi
 # itself nags to delete it. Remove it here rather than on the host, or the next
 # deploy simply puts it back.
 rm -rf /var/www/html/install /var/www/html/install.lock 2>/dev/null || true
+
+# admin/ is not a volume, so the image puts it back every start.
+if [ "$CC_ADMIN_FOLDER" != "admin" ] && [ -d /var/www/html/admin ]; then
+    log "admin folder -> $CC_ADMIN_FOLDER"
+    rm -rf "/var/www/html/$CC_ADMIN_FOLDER"
+    mv /var/www/html/admin "/var/www/html/$CC_ADMIN_FOLDER"
+fi
 
 # 3. Replicas start at the same time and would migrate concurrently. A named
 #    lock in the database serialises them: the first replica migrates, the rest

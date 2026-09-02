@@ -7,6 +7,11 @@
 # NOTE: the live copy is /swarm/stacks/app.yml on the host. This file is the
 # version-controlled record of it. If you change one, change the other.
 #
+# A first deploy onto an empty database builds the entire shop by itself:
+# PrestaShop installs, then the base image runs /tmp/post-install-scripts/,
+# which runs bootstrap.sh - catalogue, inventory, imagery, prices, search. It
+# takes a while and fetches from upstream, and it happens exactly once.
+#
 # This is the only stack that moves on a release. Upgrading is changing
 # APP_IMAGE_TAG and redeploying; nothing runs before or after, because the
 # container applies pending migrations itself on start
@@ -23,8 +28,8 @@
 # Depends on, and does not create: the `proxy` network (traefik stack) and
 # `doublesleeve_internal` (created once, see docs/deployment.md).
 #
-# Env: APP_IMAGE_TAG  DB_NAME  DB_USER  DB_PASSWORD  PS_DOMAIN  PS_FOLDER_ADMIN
-#      MEILI_MASTER_KEY
+# Env: APP_IMAGE_TAG  DB_NAME  DB_USER  DB_PASSWORD  DB_PREFIX  PS_DOMAIN
+#      PS_FOLDER_ADMIN  MEILI_MASTER_KEY  ADMIN_MAIL  ADMIN_PASSWORD
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3.8"
 
@@ -42,13 +47,29 @@ services:
       # Meilisearch directly. Same value as the search stack, or every query
       # comes back 403 and the storefront search box silently returns nothing.
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
-      # Install-time only: the base image passes this to the installer. On an
-      # installed shop the live setting is PS_SSL_ENABLED in ps_configuration,
-      # not this. Left here so a from-scratch install comes up on https.
-      PS_SSL_ENABLED: "1"
-      # The shop is installed once, by the provisioning pass. If this were 1 the
-      # entrypoint would try to install over a live shop on every deploy.
-      PS_INSTALL_AUTO: "0"
+      DB_PREFIX: ${DB_PREFIX:-cc_}
+      # A first deploy onto an empty database installs PrestaShop and then runs
+      # the whole pipeline - catalogue, imagery, prices, search - from
+      # /provisioning/deploy/bootstrap.sh, with no manual step. Safe to leave on:
+      # the base image only installs when app/config/parameters.php is absent,
+      # which on an installed shop it never is.
+      PS_INSTALL_AUTO: "1"
+      # Never 1. It drops the database on every start.
+      PS_ERASE_DB: "0"
+      PS_INSTALL_DB: "0"
+      ADMIN_MAIL: ${ADMIN_MAIL}
+      ADMIN_PASSWD: ${ADMIN_PASSWORD}
+      PS_LANGUAGE: ${PS_LANGUAGE:-en}
+      PS_COUNTRY: ${PS_COUNTRY:-ca}
+      PS_ALL_LANGUAGES: "0"
+      # Traefik terminates TLS, so the installer talks plain http to itself.
+      # HTTPS for the storefront is set in configuration, not here.
+      PS_ENABLE_SSL: "0"
+      # Must stay 0: the shim it installs becomes the Apache DirectoryIndex and
+      # unconditionally redirects to index.php, which with friendly URLs
+      # resolves back to "/" - an infinite 302 loop.
+      PS_HANDLE_DYNAMIC_DOMAIN: "0"
+      PS_FOLDER_INSTALL: install
     volumes:
       # Only state. Everything else - core, modules, theme, ops - comes from the
       # image and is replaced wholesale, which is what makes a deploy atomic.

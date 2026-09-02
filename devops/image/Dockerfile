@@ -50,7 +50,11 @@ COPY devops/image/php/custom.ini /usr/local/etc/php/conf.d/zz-cryptocards.ini
 # The container migrates itself on start, because production is a Swarm stack:
 # upgrading is a changed image tag and a redeploy, and there is no step after
 # that in which anyone runs anything. See devops/image/entrypoint.sh.
+# Run by the base image's own entrypoint after a successful install. This is
+# what makes a first deploy build the entire shop with no manual step.
+COPY devops/image/post-install/ /tmp/post-install-scripts/
+
 COPY devops/image/entrypoint.sh /usr/local/bin/cc-entrypoint
-RUN chmod +x /usr/local/bin/cc-entrypoint
+RUN chmod +x /usr/local/bin/cc-entrypoint /tmp/post-install-scripts/*
 ENTRYPOINT ["/usr/local/bin/cc-entrypoint"]
 CMD []
