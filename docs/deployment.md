@@ -237,11 +237,13 @@ web container serving traffic.
 
 ## The release, and where versions come from
 
-A pull request merged into `release/production` builds the image, tags it, and cuts a
-GitHub release. The version comes from a **label on the pull request** —
+A merge request landing on `release/production` builds the image, tags it, and
+cuts a GitLab release. The version comes from a **label on the merge request** —
 `major`, `minor`, or nothing for a patch — rather than from parsing commit
-subjects. A label is a deliberate act, visible before the merge, and it does not
-change meaning because of how someone phrased a commit.
+subjects. A label is a deliberate act, visible before the merge, and it does not change
+meaning because of how someone phrased a commit. The pipeline lives in
+`.gitlab-ci.yml`; it needs at least one registered runner with the `docker`
+executor in privileged mode.
 
 Images carry three tags: the version (what you deploy), the commit sha (what
 makes a running container traceable to an exact tree), and `latest`.

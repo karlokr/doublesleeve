@@ -137,26 +137,28 @@ baselined at 6.
   New migrations should be date-prefixed (`2026-08-15-name.php`) so filename
   order is total. The six that predate the runner are unprefixed and baselined.
 
-**e. CI and releases — DONE.** `.github/workflows/ci.yml` runs on every PR:
-PHP, JS and shell syntax, both compose files parse, and the image builds
-(without pushing). `.github/workflows/release.yml` runs when a PR merges into
-`release/production`: it works out the next semver from a `major`/`minor` label on the
-PR (patch by default), builds and pushes to GHCR tagged with the version, the
-sha and `latest`, then creates the git tag and GitHub release.
+**e. CI and releases, on GitLab — DONE, needs a runner.** `.gitlab-ci.yml`
+checks every merge request (PHP, JS and shell syntax, duplicate migration names,
+and that the image builds without publishing), and on a merge landing on
+`release/production` it works out the next semver from a `major`/`minor` label
+on the merge request, builds, pushes three tags to the project registry
+(version, commit sha, latest) and creates a GitLab release. Validated against
+GitLab's own CI lint, which reports it valid.
 
-  **Workflows are correct; hosted runners are not being allocated.** Evidence,
-  so this is not re-diagnosed from scratch: a workflow whose entire content is
-  `runs-on: ubuntu-latest` / `steps: [- run: echo ok]` fails in 3 seconds with
-  `runner: ""`, zero steps recorded and no log blob. Nothing in a workflow file
-  can cause that - the job is never picked up. Earlier runs failed even earlier,
-  at `startup_failure`, so something did change; the remaining limit is on
-  GitHub's side (spending limit or Actions minutes on a private repository).
+  GitHub Actions was abandoned rather than fixed: hosted runners were never
+  allocated to the private repository, and that is a billing matter rather than
+  anything a workflow file can address. The workflows are deleted.
 
-  Until a runner is available, `make image-push` builds and pushes the same
-  image from a developer machine after `docker login ghcr.io`. The release
-  workflow needs no change - it will work the first time a runner picks it up.
+  **The one thing left: that GitLab has zero registered runners.** A pipeline
+  with no runner sits pending forever instead of failing, which is its own kind
+  of confusing, so register one before expecting a green pipeline:
 
-  The `release/production` branch and the `major` / `minor` labels are created.
+      # on the GitLab host or any machine with Docker
+      gitlab-runner register --url https://gitlab.karlokrakan.me/ \
+        --token <from Settings > CI/CD > Runners>
+
+  It needs the `docker` executor with privileged mode, because the build and
+  release jobs use docker-in-docker to build the image.
 
 **f. One ordered `make bootstrap`, and a second environment.** Every target
 needed to build a shop from nothing exists, but the order is tribal knowledge

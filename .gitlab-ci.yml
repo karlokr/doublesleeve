@@ -1,0 +1,134 @@
+# CI for DoubleSleeve.
+#
+# Two things happen here. Every merge request gets checked; a merge request that
+# lands on release/production cuts a release: it builds the image, works out the
+# next semantic version, pushes to the project's container registry and creates
+# a GitLab release.
+#
+# The version comes from a LABEL on the merge request, `major` or `minor`, with
+# patch as the default. A label is a deliberate act by whoever merges, visible
+# on the request before it lands, and it does not quietly change meaning because
+# of how somebody phrased a commit message.
+#
+# NOTE: this needs at least one registered runner. A fresh GitLab has none, and
+# a pipeline with no runner sits pending forever rather than failing, which is
+# its own kind of confusing. See docs/deployment.md.
+stages: [check, release]
+
+variables:
+  # The project's own registry, so nothing here needs a registry to be chosen or
+  # credentials to be invented. $CI_REGISTRY_* are provided to every job.
+  IMAGE: $CI_REGISTRY_IMAGE
+
+# ---------------------------------------------------------------- check ----
+# Cheap and offline. These catch the class of mistake that would otherwise be
+# found by a broken deploy: a syntax error, a compose file that stopped parsing.
+syntax:
+  stage: check
+  image: php:8.3-cli
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq nodejs findutils > /dev/null
+  script:
+    - find src -name '*.php' -print0 | xargs -0 -n1 php -l > /dev/null
+    - echo "$(find src -name '*.php' | wc -l) PHP files parse"
+    - find src -name '*.js' -print0 | xargs -0 -n1 node --check
+    - echo "$(find src -name '*.js' | wc -l) JS files parse"
+    - |
+      dupes=$(ls src/ops/migrations/*.php | xargs -n1 basename | sort | uniq -d)
+      if [ -n "$dupes" ]; then echo "duplicate migration names: $dupes"; exit 1; fi
+    - echo "$(ls src/ops/migrations/*.php | wc -l) migrations, no duplicates"
+
+shell-syntax:
+  stage: check
+  image: bash:5
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "main"
+  script:
+    - find . -name '*.sh' -not -path './.git/*' -print0 | xargs -0 -n1 bash -n
+    - echo "shell scripts parse"
+
+# A merge request proves the image can be built. It does not get to publish one.
+build-check:
+  stage: check
+  image: docker:27-cli
+  services: [docker:27-dind]
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  script:
+    - docker build -f devops/image/Dockerfile -t doublesleeve:mr-$CI_COMMIT_SHORT_SHA .
+    - echo "image builds"
+
+# -------------------------------------------------------------- release ----
+release:
+  stage: release
+  image: docker:27-cli
+  services: [docker:27-dind]
+  # Only a merge that actually landed on release/production, never a push to it
+  # and never a rejected request.
+  rules:
+    - if: $CI_COMMIT_BRANCH == "release/production" && $CI_PIPELINE_SOURCE == "push"
+  before_script:
+    - apk add --no-cache curl jq git
+  script:
+    - |
+      # Previous version from the tags, defaulting to v0.0.0 for the first release.
+      git fetch --tags --quiet || true
+      PREVIOUS=$(git tag --list 'v*' --sort=-v:refname | head -1)
+      PREVIOUS=${PREVIOUS:-v0.0.0}
+
+      # The labels of the merge request whose merge commit this is.
+      LABELS=$(curl -sf --header "PRIVATE-TOKEN: $GITLAB_API_TOKEN" \
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/repository/commits/$CI_COMMIT_SHA/merge_requests" \
+        | jq -r '.[0].labels // [] | join(",")' 2>/dev/null || echo "")
+      echo "previous=$PREVIOUS labels=${LABELS:-none}"
+
+      MAJOR=$(echo "${PREVIOUS#v}" | cut -d. -f1)
+      MINOR=$(echo "${PREVIOUS#v}" | cut -d. -f2)
+      PATCH=$(echo "${PREVIOUS#v}" | cut -d. -f3)
+      case ",$LABELS," in
+        *,major,*) MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+        *,minor,*) MINOR=$((MINOR+1)); PATCH=0 ;;
+        *)         PATCH=$((PATCH+1)) ;;
+      esac
+      VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+      echo "VERSION=$VERSION" > release.env
+      echo "PREVIOUS=$PREVIOUS" >> release.env
+      echo "releasing $VERSION"
+
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      # Three tags: the version people deploy, the sha that ties any running
+      # container to an exact tree, and latest.
+      docker build -f devops/image/Dockerfile \
+        -t "$IMAGE:$VERSION" -t "$IMAGE:$CI_COMMIT_SHA" -t "$IMAGE:latest" .
+      docker push "$IMAGE:$VERSION"
+      docker push "$IMAGE:$CI_COMMIT_SHA"
+      docker push "$IMAGE:latest"
+  artifacts:
+    reports:
+      dotenv: release.env
+
+publish:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  needs: [release]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "release/production" && $CI_PIPELINE_SOURCE == "push"
+  script:
+    - echo "tagging $VERSION"
+  release:
+    tag_name: $VERSION
+    ref: $CI_COMMIT_SHA
+    description: |
+      Image: `$CI_REGISTRY_IMAGE:$VERSION`
+
+      Deploy:
+      ```
+      ./devops/prod/deploy.sh $VERSION
+      ```
+
+      Rollback is deploying $PREVIOUS. Migrations are forward-only and
+      backward-compatible, so the previous image runs against this schema.
