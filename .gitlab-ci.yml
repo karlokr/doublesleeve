@@ -11,8 +11,8 @@
 # of how somebody phrased a commit message.
 #
 # NOTE: this needs at least one registered runner. A fresh GitLab has none, and
-# a pipeline with no runner sits pending forever rather than failing, which is
-# its own kind of confusing. See docs/deployment.md.
+# a pipeline with no runner sits PENDING forever rather than failing, which is
+# its own kind of confusing. Setting one up is devops/ci/README.md.
 stages: [check, release]
 
 variables:
@@ -55,7 +55,10 @@ shell-syntax:
 build-check:
   stage: check
   image: docker:27-cli
-  services: [docker:27-dind]
+  # No docker:dind service: the runner binds the host's Docker socket, so this
+  # talks to a daemon that already exists. See devops/ci/README.md for the
+  # trade-off, and for why that also gives us a warm layer cache on a 2.7 GB
+  # image.
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   script:
@@ -66,7 +69,7 @@ build-check:
 release:
   stage: release
   image: docker:27-cli
-  services: [docker:27-dind]
+  # Host Docker socket, not dind - see devops/ci/README.md.
   # Only a merge that actually landed on release/production, never a push to it
   # and never a rejected request.
   rules:
