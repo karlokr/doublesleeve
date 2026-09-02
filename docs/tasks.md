@@ -137,24 +137,16 @@ baselined at 6.
   New migrations should be date-prefixed (`2026-08-15-name.php`) so filename
   order is total. The six that predate the runner are unprefixed and baselined.
 
-**e. CI and releases, on GitLab — DONE, needs a runner.** `.gitlab-ci.yml`
-checks every merge request (PHP, JS and shell syntax, duplicate migration names,
-and that the image builds without publishing), and on a merge landing on
-`release/production` it works out the next semver from a `major`/`minor` label
-on the merge request, builds, pushes three tags to the project registry
-(version, commit sha, latest) and creates a GitLab release. Validated against
-GitLab's own CI lint, which reports it valid.
+**e. Releases — DONE, no CI.** `make release` (devops/release.sh) works out the
+next semver from the tags, builds, pushes version/sha/latest to GHCR, tags the
+commit and publishes a GitHub release carrying the deploy and rollback commands.
+Every guard runs before the build, and the tag is created only after the push,
+so a release can never name an image that does not exist.
 
-  GitHub Actions was abandoned rather than fixed: hosted runners were never
-  allocated to the private repository, and that is a billing matter rather than
-  anything a workflow file can address. The workflows are deleted.
-
-  **The one thing left: that GitLab has zero registered runners**, and a
-  pipeline with no runner sits PENDING rather than failing. The runner lives with
-  the GitLab stack, not in this repository: it is shared infrastructure that
-  serves every project on that server, outlives any one application, and holds a
-  registration token. What this repo states is only what the pipeline assumes of
-  it, in `docs/deployment.md`.
+  CI was abandoned rather than fixed. GitHub never allocated a hosted runner to
+  the private repo, which is billing; GitLab would have needed a runner stood up
+  and maintained for a single-developer project. The GitLab project at
+  gitlab.karlokrakan.me/karlokr/doublesleeve still exists and can be deleted.
 
 **f. One ordered `make bootstrap`, and a second environment.** Every target
 needed to build a shop from nothing exists, but the order is tribal knowledge
