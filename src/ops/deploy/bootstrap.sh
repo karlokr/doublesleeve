@@ -143,6 +143,15 @@ if step "set taxonomy and search index"; then
 fi
 
 # --------------------------------------------------------------------------
+# Everything under migrations/ has just been applied as part of building the
+# shop, so record them as applied rather than leaving the next container start
+# to run them again against a shop that already has them. This also creates the
+# ledger table, which is what tells the entrypoint the shop is ready.
+if [ ${#FAILED[@]} -eq 0 ]; then
+    printf '\n[bootstrap] ======== baselining the migration ledger\n'
+    run "baseline" php_run deploy/migrate.php --baseline
+fi
+
 printf '\n[bootstrap] ========================================\n'
 if [ ${#FAILED[@]} -eq 0 ]; then
     printf '[bootstrap] shop built.\n'

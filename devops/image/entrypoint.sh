@@ -54,7 +54,23 @@ INSTALLED=$(mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWD" -N 
          WHERE table_schema='$DB_NAME' AND table_name LIKE '%_shop'" 2>/dev/null || echo 0)
 
 if [ "${INSTALLED:-0}" = "0" ]; then
-    log "no shop tables yet: first run, leaving migrations to the provisioning pass"
+    log "no shop tables yet: first deploy, the installer and bootstrap run next"
+    exec docker-php-entrypoint /tmp/docker_run.sh
+fi
+
+# Tables alone do not mean the shop is ready for migrations. bootstrap.sh is
+# what creates the attribute groups and taxonomy they operate on, and it
+# baselines the ledger when it finishes. So an existing ledger - not existing
+# tables - is the signal that migrations are safe to apply.
+#
+# Without this, a half-built shop runs migrations against structures that were
+# never created, and they fail exactly as they should.
+LEDGER=$(mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWD" -N -B \
+    -e "SELECT COUNT(*) FROM information_schema.tables
+         WHERE table_schema='$DB_NAME' AND table_name LIKE '%cc_migration'" 2>/dev/null || echo 0)
+
+if [ "${LEDGER:-0}" = "0" ]; then
+    log "no migration ledger: shop not bootstrapped yet, skipping migrations"
     exec docker-php-entrypoint /tmp/docker_run.sh
 fi
 
