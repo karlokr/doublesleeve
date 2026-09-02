@@ -61,8 +61,40 @@ make shell         Shell into the PrestaShop container
 make dbshell       MySQL shell
 make backup        Dump the database to backups/
 make image         Build the deployable image
+make release       Cut a release: build, push to GHCR, tag, publish
 make reset         DESTROY all data and reinstall from scratch
 ```
+
+## Releasing and deploying
+
+There is no CI. Releases are cut from a developer machine, which changes nothing
+about the artifact: still a semantic version, still three image tags, still a
+real GitHub release with the deploy and rollback commands in it.
+
+```bash
+make release-dry          # say what would happen, do none of it
+make release              # patch:  v1.2.3 -> v1.2.4
+make release BUMP=minor   # v1.2.3 -> v1.3.0
+make release BUMP=major   # v1.2.3 -> v2.0.0
+```
+
+Every check runs before the build, because a half-published release is worse
+than none: a dirty tree, a HEAD that does not match `origin`, a tag that already
+exists. The git tag is created only after the image is pushed, so a release can
+never name an image that does not exist.
+
+Deploying is then one command on the production host, and rolling back is the
+same command with the previous version:
+
+```bash
+./devops/prod/deploy.sh v1.2.4
+```
+
+It pulls before touching anything, backs up the database, applies only the
+migrations that database has not seen, and prints the rollback command if the
+health check fails. See [docs/deployment.md](docs/deployment.md), particularly
+"The upgrade contract" - the reason a rollback is safe is that migrations are
+forward-only and backward-compatible, not anything the script does.
 
 ## What `make provision` sets up
 
