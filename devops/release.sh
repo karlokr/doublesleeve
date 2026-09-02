@@ -122,7 +122,7 @@ NOTES="$(mktemp)"
   echo
   echo "Deploy:"
   echo '```bash'
-  echo "./devops/prod/deploy.sh $VERSION"
+  echo "APP_IMAGE_TAG=$VERSION docker stack deploy -c devops/prod/stack.yml doublesleeve"
   echo '```'
   echo
   echo "Rollback is deploying \`$PREVIOUS\`. Migrations are forward-only and"
@@ -136,4 +136,4 @@ gh release create "$VERSION" --title "$VERSION" --notes-file "$NOTES"
 rm -f "$NOTES"
 
 say "$VERSION released"
-say "deploy with:  ./devops/prod/deploy.sh $VERSION"
+say "deploy with:  APP_IMAGE_TAG=$VERSION docker stack deploy -c devops/prod/stack.yml doublesleeve"

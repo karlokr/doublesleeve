@@ -159,8 +159,8 @@ first place:
 > **Migrations are forward-only and backward-compatible.** After release N+1's
 > migrations have run, release N's code must still work against the database.
 
-That single rule is what makes `deploy.sh <previous tag>` a real rollback rather
-than a hope. It costs something: a change that renames or removes anything is
+That single rule is what makes redeploying the previous tag a real rollback
+rather than a hope. It costs something: a change that renames or removes anything is
 split across two releases.
 
 | | release N+1 | release N+2, after N+1 is retired everywhere |
@@ -180,32 +180,36 @@ running code depends on.
 
 ### First run versus upgrade
 
-`devops/prod/deploy.sh` decides which it is by asking the **database**, not by
-reading a marker file or being told:
+Nothing decides this by being told. The **container** works it out on start
+(`devops/image/entrypoint.sh`), because in Swarm there is no step before or
+after a deploy in which anyone runs anything:
 
-```sql
-SELECT COUNT(*) FROM information_schema.tables WHERE table_name LIKE '%_shop'
+- **No shop tables** means the shop has never been installed, so migrations are
+  left to the provisioning pass rather than run against tables that do not exist.
+- **Otherwise** it applies whatever the ledger says is pending, and a start with
+  nothing pending does nothing at all.
+
+Three details make that safe to do on every single container start:
+
+- **Replicas would migrate concurrently.** A named lock in the database
+  (`GET_LOCK('cc_migrate')`) serialises them: the first migrates, the rest wait
+  and then find nothing to do. The lock frees itself if a container dies, so a
+  killed task cannot wedge the next deploy.
+- **A failed migration logs loudly and still starts.** Taking the service down
+  on a bad migration turns it into an outage; instead the old tasks keep serving
+  because Swarm only replaces one that comes up healthy.
+- **`CC_MIGRATE=0`** on the cron service, so only the web container migrates.
+
+### What a deploy actually does
+
+```bash
+APP_IMAGE_TAG=v1.2.4 docker stack deploy -c devops/prod/stack.yml doublesleeve
 ```
 
-No shop tables means an install: PrestaShop installs itself, the setup scripts
-run, and the migrations that shipped in that image are **baselined** — recorded
-as applied without being replayed against a shop `setup.php` has just built
-correctly.
-
-Anything else is an upgrade, and an upgrade runs exactly one thing: the
-migrations the new image brought that this database has not seen. They run in a
-one-shot container of the new image, so a failure never leaves a half-started
-web container serving traffic.
-
-### What each deploy does, in order
-
-1. **Pull first.** A bad tag or an unreachable registry fails while the old
-   version is still serving.
-2. **Back up the database.** It is the only thing that cannot be restored by
-   redeploying.
-3. **Migrate** in a one-shot container, forward-only, ledger-recorded.
-4. **Start** the new containers.
-5. **Health check**, and on failure print the exact rollback command.
+Swarm pulls the image, starts a new task **before** stopping the old one
+(`order: start-first`), waits for its healthcheck, and on failure puts the
+previous task back (`failure_action: rollback`). The healthcheck has a generous
+`start_period` because a first start migrates before it serves.
 
 ## Releases are cut by hand
 
@@ -253,11 +257,17 @@ that makes rollback meaningless.
 
 ## Suggested shape
 
-Nothing here needs Kubernetes. A single host running the same compose file is
-the right size for this shop.
+A Swarm stack on a single node is the right size for this shop, and the stack
+file is `devops/prod/stack.yml`. Swarm is worth it here not for scale but for
+what it does to a deploy: `start-first` plus a healthcheck plus
+`failure_action: rollback` means changing a tag is safe on its own, with no
+script and no one watching it.
 
-- **Host:** one VPS with enough disk for `img/` to grow. Same compose file,
-  different `.env`, our image tag instead of PrestaShop's.
+- **Host:** one node with enough disk for `img/` to grow. Every service carries
+  a placement constraint pinning it there, because local volumes do not follow a
+  task to another node. Raising replicas or adding a node means moving those
+  volumes to shared storage first — that constraint is the thing to revisit,
+  not something to quietly delete.
 - **Registry:** GitHub Container Registry, since the repo is already there.
 - **Images:** on a snapshotted volume, or object storage behind a CDN once the
   catalogue grows — that also takes them out of the deploy path entirely.

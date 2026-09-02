@@ -46,3 +46,11 @@ COPY devops/image/php/custom.ini /usr/local/etc/php/conf.d/zz-cryptocards.ini
 # Ownership is set by COPY --chown above rather than by a RUN chown afterwards.
 # A chown rewrites every file it touches into a new layer, so the modules were
 # being stored twice: once owned by root, once by www-data.
+
+# The container migrates itself on start, because production is a Swarm stack:
+# upgrading is a changed image tag and a redeploy, and there is no step after
+# that in which anyone runs anything. See devops/image/entrypoint.sh.
+COPY devops/image/entrypoint.sh /usr/local/bin/cc-entrypoint
+RUN chmod +x /usr/local/bin/cc-entrypoint
+ENTRYPOINT ["/usr/local/bin/cc-entrypoint"]
+CMD []

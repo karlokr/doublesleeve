@@ -106,8 +106,8 @@ one cheaper.
 
 **a. Put the shop in its own image — DONE.** `devops/image/Dockerfile` is
 `FROM prestashop/prestashop:9.1.4-8.3` plus `src/modules/` and `src/ops/`;
-`make image` tags it from the git sha. `devops/prod/compose.yml` runs that image
-and mounts **only** the state paths — `img/`, `var/`, `upload/`, `download/`,
+`make image` tags it from the git sha. `devops/prod/stack.yml` is a Swarm stack that runs that
+image and mounts **only** the state paths — `img/`, `var/`, `upload/`, `download/`,
 `app/config` — never `/var/www/html` itself, which would hide the baked code.
 Built and verified: the modules, `/provisioning` and the php ini are all inside.
 

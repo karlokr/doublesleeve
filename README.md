@@ -83,18 +83,18 @@ than none: a dirty tree, a HEAD that does not match `origin`, a tag that already
 exists. The git tag is created only after the image is pushed, so a release can
 never name an image that does not exist.
 
-Deploying is then one command on the production host, and rolling back is the
-same command with the previous version:
+Production is a Docker Swarm stack. Deploying a version is changing the tag and
+redeploying, and rolling back is the same command with the previous one:
 
 ```bash
-./devops/prod/deploy.sh v1.2.4
+APP_IMAGE_TAG=v1.2.4 docker stack deploy -c devops/prod/stack.yml doublesleeve
 ```
 
-It pulls before touching anything, backs up the database, applies only the
-migrations that database has not seen, and prints the rollback command if the
-health check fails. See [docs/deployment.md](docs/deployment.md), particularly
-"The upgrade contract" - the reason a rollback is safe is that migrations are
-forward-only and backward-compatible, not anything the script does.
+Nothing runs afterwards. The container applies pending migrations itself on
+start, and Swarm replaces tasks one at a time and rolls back if the new one does
+not come up healthy. See [docs/deployment.md](docs/deployment.md), particularly
+"The upgrade contract" - a rollback is safe because migrations are forward-only
+and backward-compatible, not because of anything the deploy does.
 
 ## What `make provision` sets up
 
