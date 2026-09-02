@@ -24,6 +24,9 @@
 #     prices to CAD and refuses to guess.
 #   - setup.php (step 2) recreates taxonomy the align scripts (step 4) delete,
 #     so it must never run after them. That has resurrected retired data twice.
+#   - copies must be serialised AFTER sku-rebuild. A copy belongs to a
+#     combination, so rebuilding combinations under existing copies orphans
+#     them and the shop holds stock it cannot hand to a buyer.
 #
 # This is not hermetic: it fetches from tcgcsv, pokemontcg.io, the Bulbagarden
 # Archives, PriceCharting and the Bank of Canada. That is fine and expected -
@@ -44,10 +47,10 @@ MIGRATIONS_FAILED=0
 step() {
     STEP=$((STEP + 1))
     if [ "$STEP" -lt "$FROM_STEP" ]; then
-        printf '\n[bootstrap] %d/%d  %s (skipped)\n' "$STEP" 11 "$1"
+        printf '\n[bootstrap] %d/%d  %s (skipped)\n' "$STEP" 12 "$1"
         return 1
     fi
-    printf '\n[bootstrap] ======== %d/%d  %s\n' "$STEP" 11 "$1"
+    printf '\n[bootstrap] ======== %d/%d  %s\n' "$STEP" 12 "$1"
     return 0
 }
 
@@ -145,6 +148,13 @@ if step "real inventory"; then
 fi
 
 # 7 ------------------------------------------------------------------------
+# Printings, rarities and card data normalised against TCGplayer. Everything
+# downstream - titles, SKUs, facets - reads this vocabulary.
+if step "align vocabularies"; then
+    run "tcgplayer alignment" php_run catalog/align-tcgplayer.php
+fi
+
+# 8 ------------------------------------------------------------------------
 # The slow part, and where the disk goes.
 if step "imagery"; then
     run "category images"  php_run media/seed-category-images.php
@@ -153,11 +163,6 @@ if step "imagery"; then
     run "slab photos"      php_run media/slab-photos.php
     run "nav artwork"      php_run media/seed-nav-images.php
     run "storefront tiles" php_run setup/storefront.php
-fi
-
-# 8 ------------------------------------------------------------------------
-if step "serialised copies"; then
-    run "copies schema" php_run setup/copies-schema.php
 fi
 
 # 9 ------------------------------------------------------------------------
@@ -176,6 +181,20 @@ if step "naming and SKUs"; then
 fi
 
 # 11 -----------------------------------------------------------------------
+# AFTER sku-rebuild, not before. A copy is serialised against a combination, so
+# rebuilding combinations underneath existing copies orphans them - the shop
+# then has stock it cannot hand to a buyer.
+#
+# seed-photos is what the copy picker actually displays. Without it copies exist
+# but every one is pictureless, and choosing a card by photograph - the whole
+# point of serialising - has nothing to show.
+if step "serialised copies"; then
+    run "copies schema" php_run setup/copies-schema.php
+    run "copy depth"    php_run inventory/seed-copy-depth.php
+    run "copy photos"   php_run inventory/seed-photos.php
+fi
+
+# 12 -----------------------------------------------------------------------
 # Last: both read the finished catalogue.
 if step "facets and search index"; then
     run "facets"       php_run setup/facets.php
