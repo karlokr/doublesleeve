@@ -1,14 +1,26 @@
 #!/bin/bash
-# Copy the design-system module into the shop and install it.
+# Install the design-system module.
+#
+# In production the module is already inside the image at
+# /var/www/html/modules, so there is nothing to copy and this only registers
+# hooks. In development /modules is a bind mount of src/modules and the copy is
+# how edits reach the running shop.
 set -euo pipefail
 
 SRC=/modules/cryptocards_theme
 DEST=/var/www/html/modules/cryptocards_theme
 
-rm -rf "$DEST"
-cp -r "$SRC" "$DEST"
-chown -R www-data:www-data "$DEST"
-echo "theme module copied to $DEST"
+if [ -d "$SRC" ]; then
+    rm -rf "$DEST"
+    cp -r "$SRC" "$DEST"
+    chown -R www-data:www-data "$DEST"
+    echo "theme module copied to $DEST"
+elif [ -d "$DEST" ]; then
+    echo "theme module already in place at $DEST (baked into the image)"
+else
+    echo "no module at $SRC or $DEST" >&2
+    exit 1
+fi
 
 # Install through the Symfony console, not Module::install(). The PHP API path
 # calls Language::updateModulesTranslations(), which needs a container that a bare

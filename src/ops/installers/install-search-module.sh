@@ -1,17 +1,26 @@
 #!/bin/bash
 # Copy the instant-search module into the shop and install it.
 #
-# The module lives in provisioning/ (a bind mount, so it is versioned with the
-# project) and is copied into /var/www/html/modules, which is a Docker volume.
+# In production the module is already inside the image at
+# /var/www/html/modules, so there is nothing to copy and this only registers
+# hooks. In development /modules is a bind mount of src/modules and the copy is
+# how edits reach the running shop.
 set -euo pipefail
 
 SRC=/modules/cryptocards_search
 DEST=/var/www/html/modules/cryptocards_search
 
-rm -rf "$DEST"
-cp -r "$SRC" "$DEST"
-chown -R www-data:www-data "$DEST"
-echo "module files copied to $DEST"
+if [ -d "$SRC" ]; then
+    rm -rf "$DEST"
+    cp -r "$SRC" "$DEST"
+    chown -R www-data:www-data "$DEST"
+    echo "module files copied to $DEST"
+elif [ -d "$DEST" ]; then
+    echo "module already in place at $DEST (baked into the image)"
+else
+    echo "no module at $SRC or $DEST" >&2
+    exit 1
+fi
 
 # Install through the Symfony console: Module::install() calls
 # Language::updateModulesTranslations(), which needs a container a bare CLI process

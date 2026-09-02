@@ -33,14 +33,6 @@ fi
 
 # 1. The database has to be there. Swarm starts services in whatever order it
 #    likes and restarts them independently, so depends_on means nothing here.
-# The installer rejects a short or empty admin password and dies, but the base
-# image only prints 'warning: PrestaShop installation failed' and carries on to
-# start Apache - so the real cause scrolls past. Catch it here instead.
-if [ "${PS_INSTALL_AUTO:-0}" = "1" ] && [ "${#ADMIN_PASSWD}" -lt 8 ]; then
-    log "ADMIN_PASSWD is ${#ADMIN_PASSWD} characters; PrestaShop requires at least 8."
-    log "Set ADMIN_PASSWORD in the stack's environment. Nothing will install until you do."
-fi
-
 log "waiting for $DB_SERVER:$DB_PORT"
 i=0
 while [ "$i" -lt 60 ]; do
@@ -63,7 +55,21 @@ INSTALLED=$(mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWD" -N 
          WHERE table_schema='$DB_NAME' AND table_name LIKE '%_shop'" 2>/dev/null || echo 0)
 
 if [ "${INSTALLED:-0}" = "0" ]; then
-    log "no shop tables yet: first deploy, the installer and bootstrap run next"
+    # Decide this here rather than trusting the stack file. Whether the shop
+    # exists is a fact about the database, and this has already failed once by
+    # deferring to a PS_INSTALL_AUTO that a stale copy of the stack still had
+    # set to 0: the installer silently never ran, and the 37 scripts after it
+    # all failed on a shop that was never created.
+    export PS_INSTALL_AUTO=1
+    export PS_ERASE_DB=0
+    export PS_INSTALL_DB=0
+    log "no shop tables: installing PrestaShop, then bootstrap builds the shop"
+
+    if [ "${#ADMIN_PASSWD}" -lt 8 ]; then
+        log "!! ADMIN_PASSWD is ${#ADMIN_PASSWD} characters and PrestaShop needs 8."
+        log "!! The install WILL fail. Set ADMIN_PASSWORD in the stack environment."
+    fi
+
     exec docker-php-entrypoint /tmp/docker_run.sh
 fi
 

@@ -48,15 +48,9 @@ services:
       # comes back 403 and the storefront search box silently returns nothing.
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
       DB_PREFIX: ${DB_PREFIX:-cc_}
-      # A first deploy onto an empty database installs PrestaShop and then runs
-      # the whole pipeline - catalogue, imagery, prices, search - from
-      # /provisioning/deploy/bootstrap.sh, with no manual step. Safe to leave on:
-      # the base image only installs when app/config/parameters.php is absent,
-      # which on an installed shop it never is.
-      PS_INSTALL_AUTO: "1"
-      # Never 1. It drops the database on every start.
-      PS_ERASE_DB: "0"
-      PS_INSTALL_DB: "0"
+      # PS_INSTALL_AUTO / PS_ERASE_DB / PS_INSTALL_DB are deliberately absent.
+      # The entrypoint sets them from what the database actually contains, so a
+      # stale copy of this file cannot silently skip the install.
       ADMIN_MAIL: ${ADMIN_MAIL}
       ADMIN_PASSWD: ${ADMIN_PASSWORD}
       PS_LANGUAGE: ${PS_LANGUAGE:-en}

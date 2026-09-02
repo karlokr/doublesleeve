@@ -5,10 +5,17 @@ set -euo pipefail
 SRC=/modules/cryptocards_i18n
 DEST=/var/www/html/modules/cryptocards_i18n
 
-rm -rf "$DEST"
-cp -r "$SRC" "$DEST"
-chown -R www-data:www-data "$DEST"
-echo "module files copied to $DEST"
+if [ -d "$SRC" ]; then
+    rm -rf "$DEST"
+    cp -r "$SRC" "$DEST"
+    chown -R www-data:www-data "$DEST"
+    echo "module files copied to $DEST"
+elif [ -d "$DEST" ]; then
+    echo "module already in place at $DEST (baked into the image)"
+else
+    echo "no module at $SRC or $DEST" >&2
+    exit 1
+fi
 
 # Console, not Module::install() - the PHP API path needs a Symfony container a
 # bare CLI process does not have.
