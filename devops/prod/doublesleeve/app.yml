@@ -30,6 +30,7 @@
 #
 # Env: APP_IMAGE_TAG  DB_NAME  DB_USER  DB_PASSWORD  DB_PREFIX  PS_DOMAIN
 #      PS_FOLDER_ADMIN  MEILI_MASTER_KEY  ADMIN_MAIL  ADMIN_PASSWORD
+#      (PS_TRUSTED_PROXIES is fixed in this file, not an input)
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3.8"
 
@@ -47,6 +48,17 @@ services:
       # Meilisearch directly. Same value as the search stack, or every query
       # comes back 403 and the storefront search box silently returns nothing.
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      # The back office runs on Symfony, and Symfony DISCARDS X-Forwarded-Proto
+      # unless the proxy sending it is trusted (app/config/config.yml:41,
+      # trusted_proxies defaults to empty). The legacy storefront reads the
+      # header directly, so without this the shop works while the back office
+      # refuses to log in - "SSL is activated, connect in secure mode" on a URL
+      # that is already https.
+      #
+      # Private ranges only. Docker overlay networks live in 10.0.0.0/8 and
+      # nothing outside the proxy network can reach this container, since no
+      # port is published, so a public address can never be the peer.
+      PS_TRUSTED_PROXIES: 10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
       # ps_, matching what production actually installed with, and matching
       # the base image's own default so an unset variable cannot silently
       # change it. Dev uses cc_; that is a different database and only matters
