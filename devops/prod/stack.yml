@@ -22,6 +22,9 @@ services:
       DB_PASSWD: ${DB_PASSWORD}
       PS_DOMAIN: ${PS_DOMAIN}
       PS_FOLDER_ADMIN: ${PS_FOLDER_ADMIN}
+      # Install-time only: the base image passes this to the installer. On an
+      # installed shop the live setting is PS_SSL_ENABLED in ps_configuration,
+      # not this. Left here so a from-scratch install comes up on https.
       PS_SSL_ENABLED: "1"
       # The shop is installed once, by the provisioning pass. If this were 1 the
       # entrypoint would try to install over a live shop on every deploy.
@@ -63,11 +66,15 @@ services:
       resources:
         limits: { memory: 4G }
         reservations: { memory: 1G }
+      # Ingress is devops/prod/traefik-stack.yml, which owns the `proxy`
+      # network, the `websecure` entrypoint and the `sslresolver` resolver named
+      # below. websecure already sets tls + certresolver at the entrypoint, so
+      # the router needs a host rule and nothing more. Port 80 is the container
+      # port; Traefik terminates TLS and http is redirected to https upstream.
       labels:
         traefik.enable: "true"
         traefik.http.routers.doublesleeve.rule: Host(`${PS_DOMAIN}`)
         traefik.http.routers.doublesleeve.entryPoints: websecure
-        traefik.http.routers.doublesleeve.tls.certresolver: sslresolver
         traefik.http.services.doublesleeve.loadbalancer.server.port: "80"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
@@ -143,6 +150,7 @@ services:
         condition: any
 
 networks:
+  # Created by the Traefik stack, which must be deployed first.
   proxy:
     external: true
   internal:

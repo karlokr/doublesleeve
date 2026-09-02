@@ -211,6 +211,41 @@ Swarm pulls the image, starts a new task **before** stopping the old one
 previous task back (`failure_action: rollback`). The healthcheck has a generous
 `start_period` because a first start migrates before it serves.
 
+### Ingress
+
+Traefik is shared with everything else on the host and is **not owned by this
+repository**; `devops/prod/traefik-stack.yml` is a copy kept byte-identical to
+what is deployed, because our stack is unreadable without it. Three names cross
+the boundary, and all three have to keep matching:
+
+| Ours | Comes from |
+|---|---|
+| `proxy`, joined as an external network | the Traefik stack creates it |
+| `entryPoints: websecure` | `--entrypoints.websecure.address=:443` |
+| TLS | `websecure` sets `http.tls` and `certresolver=sslresolver` |
+
+Because `websecure` carries the resolver at the entrypoint, our router needs a
+host rule and nothing else - no `tls.certresolver` label. `web` redirects to
+`websecure` permanently, so there is no http router either.
+
+Deploy order matters exactly once: the Traefik stack creates the `proxy`
+network, so it goes first or ours has nothing to join.
+
+```bash
+docker stack deploy -c devops/prod/traefik-stack.yml traefik
+docker stack deploy -c devops/prod/stack.yml doublesleeve
+```
+
+Cloudflare sits in front and Traefik trusts its ranges, so the container sees a
+real client IP and `X-Forwarded-Proto: https`. PrestaShop reads that header in
+`Tools::usingSecureMode()`, which is what keeps it from redirect-looping behind
+a TLS-terminating proxy. Worth checking on the first deploy rather than
+assuming, since the symptom is a shop that will not load at all.
+
+Note that `PS_SSL_ENABLED` in the stack is **install-time only** - the base
+image hands it to the installer. On a shop that already exists, the live value
+is in `ps_configuration` and changing the environment variable does nothing.
+
 ## Releases are cut by hand
 
 There is no CI, deliberately. A hosted runner was never allocated to the GitHub
