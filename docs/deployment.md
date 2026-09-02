@@ -11,11 +11,18 @@ Docker volumes that git has never seen.
 | Modules, theme, ops scripts | the repo | yes |
 | Source assets — slab frames, fonts, card backs, seed JSON, set CSVs | the repo | yes |
 | Categories, products, attributes, features, prices, orders | `db_data` volume | **no** |
-| 18,839 generated images, 3.6 GB — see gap 1, most of it avoidable | `ps_html` volume | **no** |
+| 18,839 generated images, 3.6 GB, most of it avoidable | `ps_html` volume | **no** |
 | Search index | `meili_data` volume | no (rebuildable) |
 
 `make backup` dumps the database. **It does not touch the 3.6 GB of images**,
 which exist in exactly one place on one machine.
+
+That 3.6 GB is also mostly waste, and worth fixing before building any backup
+around it: 703 MB is originals kept at whatever resolution the CDN served (the
+largest is 4.7 MB), and 2.3 GB is PrestaShop generating **twelve** sizes of
+every image, several of them near-duplicates the theme never asks for. None of
+it is webp. See `docs/tasks.md`, which is where the outstanding work is tracked
+rather than here.
 
 ## The decision that shapes everything else
 
@@ -46,85 +53,50 @@ change it safely rather than to reproduce it.
 
 ## What deploys, and how
 
-Four kinds of change, three different mechanisms:
+Four kinds of change, and only one of them travels in the image:
 
-**Code** — modules, theme, ops scripts. Ships from git. `src/modules/` is a
-read-only bind mount and the shop runs a *copy*, so a deploy is
-`git pull` plus the installer for whatever changed:
-
-```bash
-docker exec cryptocards-shop bash /provisioning/installers/install-theme-module.sh
-docker exec -u www-data cryptocards-shop rm -rf /var/www/html/var/cache/prod
-```
+**Code** — modules, theme, ops scripts. Baked into the image at build time, so
+deploying it is deploying a tag. Nothing is copied into a running container and
+no installer runs to put files in place. *(In development this is inverted:
+`devops/dev/compose.yml` bind-mounts `src/` over the baked copies so an edit is
+live immediately.)*
 
 **Schema and configuration** — attribute groups, features, facet templates,
-vocabulary. Ships as ordered idempotent scripts under `src/ops/setup/` and
-`src/ops/migrations/`. This is the part that needs a ledger (below).
+vocabulary. Ordered idempotent scripts under `src/ops/migrations/`, applied by
+`src/ops/deploy/migrate.php`, which keeps a ledger of what has run.
 
-**Catalogue data** — sets, products, prices. Does *not* ship. It is changed in
-place by running an ops script against the live database, exactly as it is
-locally: `make add-card`, `make price-sync`, `make sets-align`.
+**Catalogue data** — sets, products, prices. Does *not* travel with a release.
+It is changed in place by running an ops script against the live database,
+exactly as locally: `make add-card`, `make price-sync`, `make sets-align`.
 
-**Images** — generated once, then carried. The generators are already
+**Images** — generated once, then carried on a volume. The generators are
 self-healing (`slab-photos.php` re-shoots when a frame is newer than the photo),
 so they run when their source changes, not on every deploy.
 
-## The four gaps, worst first
+## Why the image is 2.7 GB
 
-### 1. The images are 3.6 GB, and most of that is waste
+Almost none of it is ours:
 
-That number is not normal, and it is worth knowing why before backing it up:
+| | |
+|---|---|
+| `prestashop/prestashop:9.1.4-8.3` | **2.69 GB** |
+| `src/ops/` | 18.7 MB |
+| modules and php config | ~0.6 MB |
 
-| | files | size |
-|---|---|---|
-| originals | 797 | 703 MB |
-| generated thumbnails | 9,564 | 2.3 GB |
+PrestaShop's official image ships a 1.06 GB layer from unzipping its own source,
+plus the 124 MB zip that layer was made from. That is upstream's decision, and
+the price of `FROM prestashop/prestashop` being a one-line upgrade.
 
-- **Originals are stored at source resolution.** The largest is 4.7 MB; the
-  average is 880 KB. Scans are fetched from the TCGplayer CDN and never
-  downscaled. A card scan needs about 1000px on its long edge.
-- **PrestaShop generates twelve sizes of every image.**
-  `cart/small/medium/large/home_default`, `default_xs/sm/md/lg/xl`, and
-  `product_main` plus `product_main_2x` at 1440². Several are near-duplicates
-  the theme never requests. 752 image rows x 12 is the 9,564 files.
-- **Nothing is webp.** Every one of those files is a JPEG.
+Two things worth knowing before this looks alarming:
 
-Capping originals at intake, pruning `image_type` to the sizes the theme
-actually asks for, and enabling webp should take this to a few hundred
-megabytes. Do that *before* building a backup process around it — there is no
-sense engineering the transport of 3.6 GB that ought to be 400 MB.
+- **The pushed size is compressed.** 2.7 GB is the uncompressed size on disk;
+  the registry stores considerably less.
+- **Layers are shared.** A second release re-pushes only what changed, which is
+  our ~19 MB, not the base again. The first push is the expensive one.
 
-Then extend `make backup`, which is database-only today, to carry `img/` as
-well. Until it does, the imagery exists in exactly one place on one machine, and
-losing it means re-fetching thousands of scans from third parties and
-recompositing every slab.
-
-### 2. Nothing records which migrations have run
-
-There is no ledger table. Knowing what to run on a deploy is currently a person
-remembering. Every migration is idempotent, so the fallback is "run them all",
-which works and gets slower and more frightening as the list grows.
-
-A `cc_migration` table recording filename and applied-at, plus a runner that
-applies what is missing in filename order, turns deployment into one command.
-
-### 3. There is no single ordered bootstrap
-
-The targets to build a shop from nothing all exist, but the *order* is tribal
-knowledge — and it is known to be order-sensitive. `setup.php` recreates
-taxonomy that the align scripts deliberately delete, so running it after them
-resurrects retired data. That has happened twice.
-
-One `make bootstrap` that runs the full sequence in the correct order, with the
-hazard encoded rather than remembered, is what makes a second environment
-possible at all.
-
-### 4. There is only one environment
-
-One `.env`, one compose file, one machine. There is nowhere to rehearse a
-migration before it touches real stock. A staging environment is what makes
-"easily changeable" true rather than aspirational — it is the difference between
-testing a catalogue change and performing it on customers.
+Getting meaningfully below this means not using PrestaShop's image: building on
+`php:8.3-apache` and installing PrestaShop ourselves. That is a real project,
+and it trades away the property that makes upgrades cheap.
 
 ## The deployable artifact: our own image
 

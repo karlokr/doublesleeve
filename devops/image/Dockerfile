@@ -26,7 +26,7 @@ FROM prestashop/prestashop:9.1.4-8.3
 # Our modules live where PrestaShop expects modules to live. In development the
 # installers copy them in from a bind mount; here they simply are where they
 # belong, and the installers have nothing left to copy.
-COPY src/modules/ /var/www/html/modules/
+COPY --chown=www-data:www-data src/modules/ /var/www/html/modules/
 
 # The operator's scripts, at the path every one of them already assumes. Nothing
 # inside ops/ refers to a host path, which is why the layout above it could move
@@ -35,6 +35,6 @@ COPY src/ops/ /provisioning/
 
 COPY devops/image/php/custom.ini /usr/local/etc/php/conf.d/zz-cryptocards.ini
 
-# The module tree arrives owned by root from the build context; PrestaShop writes
-# to it (cache, config) as www-data.
-RUN chown -R www-data:www-data /var/www/html/modules
+# Ownership is set by COPY --chown above rather than by a RUN chown afterwards.
+# A chown rewrites every file it touches into a new layer, so the modules were
+# being stored twice: once owned by root, once by www-data.
