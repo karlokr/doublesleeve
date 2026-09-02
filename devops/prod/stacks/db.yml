@@ -1,0 +1,63 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# MariaDB — the shop's database (Swarm stack, single node)
+#
+# Deploy:
+#   docker stack deploy -c db.yml doublesleeve-db
+#
+# NOTE: the live copy is /swarm/stacks/db.yml on the host. This file is the
+# version-controlled record of it. If you change one, change the other.
+#
+# Separate from the app on purpose. This is the only stack holding data that
+# cannot be regenerated from anything, and once the shop takes its first order
+# it is the source of truth for the whole business. It should be touched on its
+# own schedule, after a backup, and never as a side effect of shipping code.
+#
+# Redeploying this restarts the database. Redeploying the app does not.
+#
+# Nothing here is published. It is reachable only over the doublesleeve_internal
+# overlay, by the alias `db`.
+#
+# Env: DB_NAME  DB_USER  DB_PASSWORD  DB_ROOT_PASSWORD
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3.8"
+
+services:
+  db:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      internal:
+        # Explicit, because the app is in a different stack. Without it the
+        # only name that resolves is the stack-prefixed one, and DB_SERVER=db
+        # would not find anything.
+        aliases:
+          - db
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        # stop-first: two MariaDB tasks must never hold the same data
+        # directory. start-first would run both against it for a moment.
+        order: stop-first
+      resources:
+        limits: { memory: 2G }
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+networks:
+  internal:
+    external: true
+    name: doublesleeve_internal
+
+volumes:
+  db_data:

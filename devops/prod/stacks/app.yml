@@ -1,15 +1,30 @@
-# Production, as a Swarm stack.
+# ─────────────────────────────────────────────────────────────────────────────
+# doublesleeve — the shop itself (Swarm stack, single node)
 #
-#   docker stack deploy -c devops/prod/stack.yml doublesleeve
+# Deploy:
+#   docker stack deploy -c app.yml doublesleeve
 #
-# Upgrading is changing APP_IMAGE_TAG and running that again. Nothing else. No
-# script, no exec, no step afterwards: the container applies pending migrations
-# itself on start (devops/image/entrypoint.sh), and Swarm rolls replicas one at
-# a time and stops if one fails to come up.
+# NOTE: the live copy is /swarm/stacks/app.yml on the host. This file is the
+# version-controlled record of it. If you change one, change the other.
 #
-# Rolling back is the same command with the previous tag, and it is safe because
+# This is the only stack that moves on a release. Upgrading is changing
+# APP_IMAGE_TAG and redeploying; nothing runs before or after, because the
+# container applies pending migrations itself on start
+# (devops/image/entrypoint.sh) and the ledger makes that free when there is
+# nothing pending.
+#
+# Rolling back is redeploying the previous tag, and it is safe because
 # migrations are forward-only and backward-compatible - the older image runs
 # against the newer schema. See docs/deployment.md, "The upgrade contract".
+#
+# Deploying this does NOT restart the database or the search index. They are
+# separate stacks precisely so a code release cannot bounce them.
+#
+# Depends on, and does not create: the `proxy` network (traefik stack) and
+# `doublesleeve_internal` (created once, see docs/deployment.md).
+#
+# Env: APP_IMAGE_TAG  DB_NAME  DB_USER  DB_PASSWORD  PS_DOMAIN  PS_FOLDER_ADMIN
+# ─────────────────────────────────────────────────────────────────────────────
 version: "3.8"
 
 services:
@@ -41,8 +56,8 @@ services:
     deploy:
       replicas: 1
       update_config:
-        # One at a time, and only after the new task is actually healthy. This is
-        # what makes "change the tag and redeploy" safe on its own.
+        # One at a time, and only after the new task is actually healthy. This
+        # is what makes "change the tag and redeploy" safe on its own.
         order: start-first
         failure_action: rollback
         delay: 10s
@@ -54,21 +69,21 @@ services:
       resources:
         limits: { memory: 4G }
         reservations: { memory: 1G }
-      # Ingress is devops/prod/traefik-stack.yml, which owns the `proxy`
-      # network, the `websecure` entrypoint and the `sslresolver` resolver named
-      # here. Port 80 is the container port; Traefik terminates TLS and http is
-      # redirected to https upstream.
+      # Ingress is stacks/traefik.yml, which owns the `proxy` network, the
+      # `websecure` entrypoint and the `sslresolver` resolver named here. Port
+      # 80 is the container port; Traefik terminates TLS and http is redirected
+      # to https upstream.
       labels:
         traefik.enable: "true"
         # This service sits on two networks. The provider defaults to proxy, but
         # say it, so adding a third network later cannot make routing ambiguous.
         traefik.swarm.network: proxy
-        traefik.http.routers.doublesleeve.rule: Host(`${PS_DOMAIN}`) || Host(`www.${PS_DOMAIN}`)
+        traefik.http.routers.doublesleeve.rule: Host(`doublesleeve.org`) || Host(`www.doublesleeve.org`)
         traefik.http.routers.doublesleeve.entryPoints: websecure
         traefik.http.routers.doublesleeve.priority: "1000"
         traefik.http.routers.doublesleeve.tls.certresolver: sslresolver
-        traefik.http.routers.doublesleeve.tls.domains[0].main: ${PS_DOMAIN}
-        traefik.http.routers.doublesleeve.tls.domains[0].sans: "www.${PS_DOMAIN}"
+        traefik.http.routers.doublesleeve.tls.domains[0].main: doublesleeve.org
+        traefik.http.routers.doublesleeve.tls.domains[0].sans: "www.doublesleeve.org"
         traefik.http.routers.doublesleeve.service: doublesleeve
         traefik.http.services.doublesleeve.loadbalancer.server.port: 80
     healthcheck:
@@ -79,51 +94,20 @@ services:
       # Generous, because a first start migrates before it serves anything.
       start_period: 180s
 
-  db:
-    image: mariadb:11.4
-    environment:
-      MARIADB_DATABASE: ${DB_NAME}
-      MARIADB_USER: ${DB_USER}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-    volumes:
-      - db_data:/var/lib/mysql
-    networks: [internal]
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: any
-      resources:
-        limits: { memory: 2G }
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-
-  meilisearch:
-    image: getmeili/meilisearch:v1.53
-    environment:
-      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
-      MEILI_ENV: production
-    volumes:
-      - meili_data:/meili_data
-    networks: [internal]
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: any
-
   cron:
+    # Same stack as the shop, and deliberately not its own: it runs the same
+    # image, so splitting it would let scheduled work drift onto a different
+    # version of the code than the site is serving.
     image: ${APP_IMAGE:-ghcr.io/karlokr/doublesleeve}:${APP_IMAGE_TAG:-latest}
-    # Same image as the shop, so scheduled work runs exactly the code the site
-    # serves. Migrations are the web container's job, not this one's.
     entrypoint: ["cron", "-f", "-L", "15"]
     environment:
       DB_SERVER: db
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWD: ${DB_PASSWORD}
+      # Migrations are the web container's job. Two containers racing the same
+      # ledger is what the lock exists for, but there is no reason to make it
+      # work for a living.
       CC_MIGRATE: "0"
     volumes:
       - ps_img:/var/www/html/img
@@ -136,15 +120,14 @@ services:
         condition: any
 
 networks:
-  # Created by the Traefik stack, which must be deployed first.
+  # Both created outside this stack: proxy by traefik, internal once by hand.
   proxy:
     external: true
   internal:
-    driver: overlay
+    external: true
+    name: doublesleeve_internal
 
 volumes:
-  db_data:
-  meili_data:
   ps_img:
   ps_var:
   ps_upload:

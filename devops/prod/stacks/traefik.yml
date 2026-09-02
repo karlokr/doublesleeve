@@ -3,15 +3,14 @@
 # unreadable without it: the `proxy` network, the `websecure` entrypoint and the
 # `sslresolver` certresolver that our Traefik labels name all come from here.
 #
-# Deploy this FIRST. It creates the `proxy` overlay network, which stack.yml
-# joins as external; deploying doublesleeve before it exists just fails.
+# Deploy this FIRST. It creates the `proxy` overlay network, which app.yml and
+# portainer.yml join as external; deploying them before it exists just fails.
 #
-#   docker stack deploy -c devops/prod/traefik-stack.yml traefik
-#   docker stack deploy -c devops/prod/stack.yml doublesleeve
+#   docker stack deploy -c traefik.yml traefik
 #
-# Keep this file byte-identical to what is actually deployed, so it stays
-# diffable. If the entrypoint or certresolver names change here, the Traefik
-# labels in stack.yml have to change with them.
+# NOTE: the live copy is /swarm/stacks/traefik.yml on the host. Keep the two
+# byte-identical, so they stay diffable. If the entrypoint or certresolver names
+# change here, the Traefik labels in app.yml and portainer.yml change with them.
 version: "3.8"
 
 networks:

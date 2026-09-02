@@ -83,11 +83,14 @@ than none: a dirty tree, a HEAD that does not match `origin`, a tag that already
 exists. The git tag is created only after the image is pushed, so a release can
 never name an image that does not exist.
 
-Production is a Docker Swarm stack. Deploying a version is changing the tag and
-redeploying, and rolling back is the same command with the previous one:
+Production is a set of Docker Swarm stacks, one per lifecycle: ingress,
+database, search index, and the shop itself. Only the last moves on a release,
+so shipping code never restarts the database. Deploying a version is changing
+the tag and redeploying, and rolling back is the same command with the previous
+one:
 
 ```bash
-APP_IMAGE_TAG=v1.2.4 docker stack deploy -c devops/prod/stack.yml doublesleeve
+APP_IMAGE_TAG=v1.2.4 docker stack deploy -c /swarm/stacks/app.yml doublesleeve
 ```
 
 Nothing runs afterwards. The container applies pending migrations itself on

@@ -200,10 +200,50 @@ Three details make that safe to do on every single container start:
   because Swarm only replaces one that comes up healthy.
 - **`CC_MIGRATE=0`** on the cron service, so only the web container migrates.
 
+### The stacks, and why there are four
+
+One stack per lifecycle, because the question that matters is *what a deploy is
+allowed to restart*. In one file, shipping a CSS fix bounces MariaDB.
+
+| Stack | Holds | Moves when | Safe to `stack rm`? |
+|---|---|---|---|
+| `traefik` | ingress | Traefik is upgraded | no, it is everyone's front door |
+| `doublesleeve-db` | MariaDB | deliberately, after a backup | **never** |
+| `doublesleeve-search` | Meilisearch | whenever | yes, the index is derived |
+| `doublesleeve` | shop + cron | **every release** | yes, all state is in volumes |
+
+The split is not tidiness. `doublesleeve-db` is the only thing on the host that
+cannot be regenerated from anything, and after the first order it is the source
+of truth for the business; it should never move as a side effect of shipping
+code. `doublesleeve-search` is the exact opposite - `make search-index` rebuilds
+it from the catalogue, so it can be wiped without a thought, which is precisely
+why it must not share a stack with the database.
+
+`cron` stays with the shop rather than getting its own stack, because it runs
+the same image. Separating them would let scheduled work drift onto a different
+version of the code than the site is serving.
+
+### The network they share
+
+Splitting the stacks means service discovery has to cross a stack boundary, so
+`internal` becomes an external network created once, by hand:
+
+```bash
+docker network create --driver overlay --attachable doublesleeve_internal
+```
+
+`--attachable` matters: it is what lets a one-off container join the network to
+run the provisioning pass or a manual ops script against the live database.
+
+Each service declares its own alias on that network (`db`, `meilisearch`), which
+is not decoration. Inside one stack, Swarm resolves a short service name for
+free; across stacks the only name that resolves is the stack-prefixed one, and
+`DB_SERVER=db` would find nothing.
+
 ### What a deploy actually does
 
 ```bash
-APP_IMAGE_TAG=v1.2.4 docker stack deploy -c devops/prod/stack.yml doublesleeve
+APP_IMAGE_TAG=v1.2.4 docker stack deploy -c /swarm/stacks/app.yml doublesleeve
 ```
 
 Swarm pulls the image, starts a new task **before** stopping the old one
@@ -211,119 +251,3 @@ Swarm pulls the image, starts a new task **before** stopping the old one
 previous task back (`failure_action: rollback`). The healthcheck has a generous
 `start_period` because a first start migrates before it serves.
 
-### Ingress
-
-Traefik is shared with everything else on the host and is **not owned by this
-repository**; `devops/prod/traefik-stack.yml` is a copy kept byte-identical to
-what is deployed, because our stack is unreadable without it. Three names cross
-the boundary, and all three have to keep matching:
-
-| Ours | Comes from |
-|---|---|
-| `proxy`, joined as an external network | the Traefik stack creates it |
-| `entryPoints: websecure` | `--entrypoints.websecure.address=:443` |
-| TLS | `websecure` sets `http.tls` and `certresolver=sslresolver` |
-
-Because `websecure` carries the resolver at the entrypoint, our router needs a
-host rule and nothing else - no `tls.certresolver` label. `web` redirects to
-`websecure` permanently, so there is no http router either.
-
-Deploy order matters exactly once: the Traefik stack creates the `proxy`
-network, so it goes first or ours has nothing to join.
-
-```bash
-docker stack deploy -c devops/prod/traefik-stack.yml traefik
-docker stack deploy -c devops/prod/stack.yml doublesleeve
-```
-
-Cloudflare sits in front and Traefik trusts its ranges, so the container sees a
-real client IP and `X-Forwarded-Proto: https`. PrestaShop reads that header in
-`Tools::usingSecureMode()`, which is what keeps it from redirect-looping behind
-a TLS-terminating proxy. Worth checking on the first deploy rather than
-assuming, since the symptom is a shop that will not load at all.
-
-Note that `PS_SSL_ENABLED` in the stack is **install-time only** - the base
-image hands it to the installer. On a shop that already exists, the live value
-is in `ps_configuration` and changing the environment variable does nothing.
-
-## Releases are cut by hand
-
-There is no CI, deliberately. A hosted runner was never allocated to the GitHub
-repository, which is a billing matter rather than an engineering one, and
-standing up and maintaining a self-hosted runner for a single-developer project
-is more infrastructure than the problem deserves.
-
-Nothing about the artifact changes. The version is still semantic, the image
-still carries three tags, the release is still a real GitHub release with the
-deploy and rollback commands in it. The only difference is which machine types
-the command:
-
-```bash
-make release              # patch: v1.2.3 -> v1.2.4
-make release BUMP=minor   # v1.2.3 -> v1.3.0
-make release BUMP=major   # v1.2.3 -> v2.0.0
-make release BUMP=v2.5.0  # exactly that
-make release-dry          # say what would happen, do none of it
-```
-
-`devops/release.sh` works out the next version from the tags, builds, pushes to
-GHCR, tags the commit and publishes the release.
-
-**Every check runs before the build**, because a half-published release is worse
-than no release: a dirty tree, a HEAD that does not match `origin`, a tag that
-already exists, `gh` not logged in. And the git tag is created **after** the
-image is pushed, so a release can never name an image that does not exist.
-
-GHCR takes the token `gh` already holds, so there is no second credential to
-create or store anywhere.
-
-### The three tags, and which one production pins to
-
-| tag | answers |
-|---|---|
-| `v1.2.3` | what a human deploys |
-| the commit sha | what is *actually* running, traceable to an exact tree |
-| `latest` | convenience only |
-
-Production pins to the **version**. Pinning to `latest` would make a redeploy
-mean something different depending on when it happened, which is the property
-that makes rollback meaningless.
-
-## Suggested shape
-
-A Swarm stack on a single node is the right size for this shop, and the stack
-file is `devops/prod/stack.yml`. Swarm is worth it here not for scale but for
-what it does to a deploy: `start-first` plus a healthcheck plus
-`failure_action: rollback` means changing a tag is safe on its own, with no
-script and no one watching it.
-
-- **Host:** one node with enough disk for `img/` to grow. Single node, so there
-  is nothing to place: volumes are local and the only node is this one. Adding a
-  second node is what would change that, and the thing to sort out then is
-  shared storage for `img/` and the database, not placement rules.
-- **Registry:** GitHub Container Registry, since the repo is already there.
-- **Images:** on a snapshotted volume, or object storage behind a CDN once the
-  catalogue grows — that also takes them out of the deploy path entirely.
-- **Database:** managed MariaDB, or the compose service plus a dump off-box.
-- **First deploy only:** restore a dump and an image bundle from the machine
-  that has them. That is how you move the shop you already have, rather than
-  rebuilding it and hoping five third parties agree.
-
-## Running order, for a genuinely empty shop
-
-Recorded because it is the thing most easily lost. This is the sequence a fresh
-environment needs; the hazard in step 3 is why it cannot simply be
-alphabetical.
-
-1. `make up` — containers, PrestaShop installs itself
-2. `make provision` — config, catalogue model, modules, facets, translations
-3. `make purge-demo` — PrestaShop's demo catalogue, **before** real inventory
-4. `make seed` — real inventory with images
-5. `make seed-japanese`, `make seed-graded` — the other two catalogues
-6. `make slab-frames`, `make slab-photos`, `make nav-images`, `make card-backs`,
-   `make cutout-images` — generated imagery
-7. `make copies-init` — serialise stock into individual copies
-8. `make price-setup`, `make price-sync`, `make price-apply` — the price engine
-9. `make sets-align`, `make search-index` — naming and search
-
-Step 2 must not be re-run after step 9 without checking what it recreates.

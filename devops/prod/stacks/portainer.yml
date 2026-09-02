@@ -2,7 +2,7 @@
 # Portainer CE — Container management UI (Swarm stack, single node)
 #
 # Deploy:
-#   docker stack deploy -c portainer-stack.yml portainer
+#   docker stack deploy -c portainer.yml portainer
 #
 # NOTE: the live copy is /swarm/stacks/portainer.yml on the host. This file is
 # the version-controlled record of it, and that pair has drifted before on other

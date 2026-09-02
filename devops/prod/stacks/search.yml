@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Meilisearch — the storefront's search index (Swarm stack, single node)
+#
+# Deploy:
+#   docker stack deploy -c search.yml doublesleeve-search
+#
+# NOTE: the live copy is /swarm/stacks/search.yml on the host. This file is the
+# version-controlled record of it. If you change one, change the other.
+#
+# Its own stack because of blast radius, which is the opposite of the database's.
+# Everything here is derived: the index is rebuilt from the catalogue by
+# `make search-index`. So this stack can be removed, wiped and redeployed
+# without a backup and without a second thought - which is exactly why it must
+# not share a stack with anything that cannot.
+#
+# The shop degrades rather than breaks while this is down: search stops
+# returning results, browsing and checkout carry on.
+#
+# Nothing here is published. Reachable only over doublesleeve_internal, by the
+# alias `meilisearch`.
+#
+# Env: MEILI_MASTER_KEY
+# ─────────────────────────────────────────────────────────────────────────────
+version: "3.8"
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.53
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      MEILI_ENV: production
+    volumes:
+      - meili_data:/meili_data
+    networks:
+      internal:
+        aliases:
+          - meilisearch
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        # Same reason as the database: one writer per data directory.
+        order: stop-first
+      resources:
+        limits: { memory: 1G }
+
+networks:
+  internal:
+    external: true
+    name: doublesleeve_internal
+
+volumes:
+  meili_data:

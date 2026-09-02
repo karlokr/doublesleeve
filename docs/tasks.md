@@ -106,8 +106,8 @@ one cheaper.
 
 **a. Put the shop in its own image — DONE.** `devops/image/Dockerfile` is
 `FROM prestashop/prestashop:9.1.4-8.3` plus `src/modules/` and `src/ops/`;
-`make image` tags it from the git sha. `devops/prod/stack.yml` is a Swarm stack that runs that
-image and mounts **only** the state paths — `img/`, `var/`, `upload/`, `download/`,
+`make image` tags it from the git sha. `devops/prod/stacks/app.yml` is the Swarm stack that runs
+that image and mounts **only** the state paths — `img/`, `var/`, `upload/`, `download/`,
 `app/config` — never `/var/www/html` itself, which would hide the baked code.
 Built and verified: the modules, `/provisioning` and the php ini are all inside.
 
@@ -147,7 +147,9 @@ so a release can never name an image that does not exist.
   lost by releasing from a workstation: the version is still semantic, the image
   still carries three tags, the release is still a real GitHub release.
 
-**f. Production runs as a Swarm stack — DONE.** `devops/prod/stack.yml`.
+**f. Production runs as Swarm stacks — DONE.** `devops/prod/stacks/`, one file
+per lifecycle: `traefik`, `db`, `search`, `app`. Only `app` moves on a release,
+so shipping code never restarts the database.
 Upgrading is changing `APP_IMAGE_TAG` and redeploying; nothing runs before or
 after, because in Swarm there is nowhere for a script to run. So the container
 migrates itself on start (`devops/image/entrypoint.sh`), and the ledger makes
