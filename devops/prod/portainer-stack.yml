@@ -10,14 +10,11 @@
 #
 # Access: https://portainer.doublesleeve.org
 #
-# One router, locked to the source IPs in ADMIN_ALLOWLIST. There is no
+# One router, locked to the source IPs in the allowlist below. There is no
 # webhook router here: doublesleeve has no CI to fire one. Releases are cut by
 # hand from a workstation (devops/release.sh) and deploys are a stack deploy, so
 # the opening that a webhook route exists to create would have nothing on the
 # other end of it. Add it back the day CI exists, not before.
-#
-# Requires in devops/prod/.env:
-#   ADMIN_ALLOWLIST   comma-separated CIDRs allowed to reach Portainer
 # ─────────────────────────────────────────────────────────────────────────────
 
 services:
@@ -34,16 +31,16 @@ services:
       labels:
         traefik.enable: "true"
         traefik.swarm.network: proxy
-        traefik.http.routers.portainer.rule: Host(`portainer.${PS_DOMAIN}`)
+        traefik.http.routers.portainer.rule: Host(`portainer.doublesleeve.org`)
         traefik.http.routers.portainer.entryPoints: websecure
         traefik.http.routers.portainer.priority: "1000"
         traefik.http.routers.portainer.tls.certresolver: sslresolver
         traefik.http.routers.portainer.middlewares: portainer-ip-allowlist@swarm
-        traefik.http.routers.portainer.tls.domains[0].main: ${PS_DOMAIN}
-        traefik.http.routers.portainer.tls.domains[0].sans: "portainer.${PS_DOMAIN}"
+        traefik.http.routers.portainer.tls.domains[0].main: doublesleeve.org
+        traefik.http.routers.portainer.tls.domains[0].sans: "portainer.doublesleeve.org"
         traefik.http.routers.portainer.service: portainer
         traefik.http.services.portainer.loadbalancer.server.port: 9000
-        traefik.http.middlewares.portainer-ip-allowlist.ipAllowList.sourceRange: ${ADMIN_ALLOWLIST}
+        traefik.http.middlewares.portainer-ip-allowlist.ipAllowList.sourceRange: 184.64.184.188/32, 174.7.36.28/32
         # depth 1 = the last hop in X-Forwarded-For, which is what Cloudflare
         # sets. Correct only while the record is proxied; unproxy it and this
         # reads the wrong address.
