@@ -30,12 +30,12 @@ The split now is:
 
 | concern | unit of work | where |
 |---|---|---|
-| Catalogue (sets, eras, regions) | a region's whole taxonomy | `ops/catalog/` — cheap, product-free |
-| Stock | one copy of one card | `ops/inventory/add-card.php`, and eventually the copies module's photo-match admin |
-| Price | one SKU, every 12 h | `ops/pricing/price-sync.php` via cron |
+| Catalogue (sets, eras, regions) | a region's whole taxonomy | `src/ops/catalog/` — cheap, product-free |
+| Stock | one copy of one card | `src/ops/inventory/add-card.php`, and eventually the copies module's photo-match admin |
+| Price | one SKU, every 12 h | `src/ops/pricing/price-sync.php` via cron |
 | Bulk repair | everything, on purpose, explicitly | `make catalog-repair` (`--rehome`) |
 
-The seeders (`ops/inventory/seed-*.php`) remain as **fixtures**: they bootstrap
+The seeders (`src/ops/inventory/seed-*.php`) remain as **fixtures**: they bootstrap
 a believable dev shop. They are not the ingestion path.
 
 ## The catalogue model
@@ -50,29 +50,29 @@ hold?". They are different tables because they are different facts.
   level under Singles because the era lists genuinely differ per region (Japan
   has ADV/PCG/LEGEND, never had WotC); it is a *facet* on Sealed/Graded because
   their child lists (product types, graders) are region-invariant. See
-  `ops/lib/region.php`.
+  `src/ops/lib/region.php`.
 - **SKU axes** (attribute groups, in selector order): Card Language → Printing →
   Grading → Condition. Copy-state facts live on combinations; card-level facts
   (Rarity, Set, Region, Pokémon…) are features.
 - **Grading is a copy state**, not a product split — see
   `docs/pokemon-catalog.md`. The (Grading, Condition-tier) pair identifies a
   slab market; only combinations that physically exist are created.
-- **Serialisation**: `modules/cryptocards_copies` gives every physical single
+- **Serialisation**: `src/modules/cryptocards_copies` gives every physical single
   its own row, code, photos and reservation lifecycle. This is the platform's
   core module; the photo-match admin flow lands here, and it should call the
   same operation `add-card.php` performs from the CLI.
 
 ## The price engine
 
-`ops/pricing/price-sync.php`, cron at 00:15/12:15, **journal-only until
-promoted** (add `--apply` in `ops/crontab` once the journal has earned trust).
+`src/ops/pricing/price-sync.php`, cron at 00:15/12:15, **journal-only until
+promoted** (add `--apply` in `src/ops/crontab` once the journal has earned trust).
 
 - **Raw stock**: TCGplayer market is the anchor (the market this shop sells
   into); pokemontcg.io mirrors it (same family, one vote) and brings Cardmarket
   (EUR) as corroboration that moves confidence, never the price. FX is Bank of
   Canada, twice daily, cached.
 - **Graded stock**: slabs have no TCGplayer row; their market is auctions.
-  Three families (`ops/lib/graded-quotes.php`): PriceCharting's per-tier
+  Three families (`src/ops/lib/graded-quotes.php`): PriceCharting's per-tier
   estimate, PriceCharting's per-tier sold-comp tables, and 130point's eBay sold
   search — recency-weighted (21-day half-life; slab markets step fast), blended
   by weighted median, same guard rails, journaled per combination. Slab totals
@@ -84,8 +84,8 @@ promoted** (add `--apply` in `ops/crontab` once the journal has earned trust).
 ## Repository layout
 
 ```
-modules/        The application: PrestaShop modules (theme, search, copies, i18n)
-ops/            Operational toolkit, mounted at /provisioning in the containers
+src/modules/        The application: PrestaShop modules (theme, search, copies, i18n)
+src/ops/            Operational toolkit, mounted at /provisioning in the containers
   setup/        One-time shop provisioning + schemas (idempotent, `make provision`)
   catalog/      Taxonomy + vocabulary sync against TCGplayer/pokemontcg.io/Poképédia
   inventory/    Stock: add-card.php (the real path), seed-* (dev fixtures), copies lifecycle
@@ -95,7 +95,7 @@ ops/            Operational toolkit, mounted at /provisioning in the containers
   audits/       Read-only checks against TCGplayer's catalogue
   installers/   Module copy+install scripts (modules are mounted at /modules)
   lib/          Shared vocabulary: names, eras, regions, cutouts, graded quotes
-  data/         Fetched catalogue data (CSV/JSON) — regenerate via ops/catalog/fetch-*
+  data/         Fetched catalogue data (CSV/JSON) — regenerate via src/ops/catalog/fetch-*
 docker/         Container build context (php config, cron sidecar)
 docs/           This file, plus the catalogue, operations and image-pipeline references
 ```
@@ -113,13 +113,13 @@ survive host-side reorganisation.
   EN/JP stock has ever been seeded; non-English Western SKUs are untested.
 - `pokemontcg_card_id` is only mapped for fixture stock; cards added via
   `add-card.php` run on the TCGplayer anchor alone (medium confidence) until
-  `ops/catalog/align-tcgplayer.php` maps them.
-- Chinese region: modelled in vocabulary (`ops/lib/region.php`), no source, no
+  `src/ops/catalog/align-tcgplayer.php` maps them.
+- Chinese region: modelled in vocabulary (`src/ops/lib/region.php`), no source, no
   categories, no stock.
 - Graded tiers with no structured price source (BGS 10 Pristine/Black Label,
   CGC 10 Pristine) exist in the vocabulary but are never auto-priced; they need
   per-slab pricing at listing time.
-- **SGC and ACE have no slab frames.** `ops/media/make-slab-frames.php` generates
+- **SGC and ACE have no slab frames.** `src/ops/media/make-slab-frames.php` generates
   a frame per grader per grade from a template photograph of that company's
   holder, and no template was ever supplied for these two. `slabFramePath()`
   returns null for them and the listing falls back to a plain scan, deliberately:

@@ -71,7 +71,7 @@ all real search queries.
 
 ### One script owns the set taxonomy
 
-`ops/catalog/sets-tcgplayer.php` is the **only** thing allowed to create era or
+`src/ops/catalog/sets-tcgplayer.php` is the **only** thing allowed to create era or
 set categories. `setup.php` used to build a second, parallel tree from
 `pokemon-sets.csv` (pokemontcg.io series → `Base` > `Base (BS)`), and because
 `make provision` runs *after* `make sets-align`, it silently resurrected the tree

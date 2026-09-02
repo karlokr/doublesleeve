@@ -3,6 +3,26 @@
 Pokémon TCG store. PrestaShop 9.1.4 on Docker, provisioned for singles, sealed
 product and graded slabs.
 
+## Repository layout
+
+```
+src/                  what ships INTO the image
+  modules/            the four PrestaShop modules: theme, copies, search, i18n
+  ops/                the operator's scripts, by what they act on
+                      catalog/ inventory/ media/ pricing/ migrations/
+                      audits/ setup/ installers/ lib/ assets/ data/
+devops/               how it is built and run
+  image/              Dockerfile, php config, the cron sidecar
+  dev/                local compose - bind-mounts src/ so edits are live
+  prod/               production compose - runs the tagged image, mounts no code
+docs/                 how the shop is meant to work, and why
+Makefile              every operation, one target each
+```
+
+Nothing under `src/ops/` refers to a host path — every script addresses
+`/provisioning/...`, the path it is mounted or copied to. That is why the layout
+above it can move without touching a single script, and it is worth preserving.
+
 ## Quick start
 
 ```bash
@@ -40,6 +60,7 @@ make logs          Tail PrestaShop logs
 make shell         Shell into the PrestaShop container
 make dbshell       MySQL shell
 make backup        Dump the database to backups/
+make image         Build the deployable image
 make reset         DESTROY all data and reinstall from scratch
 ```
 
@@ -171,9 +192,9 @@ of that card. Both update live as the selectors change.
 1. **Eras are inserted above sets, per region.** TCGplayer's organisation is
    genuinely flat — 217 Western groups and 454 Japanese ones, no series field. A
    flat list is not navigable, so sets are filed under the era/block collectors
-   actually shop by (`ops/lib/era.php`, `ops/lib/era-jp.php` — the Japanese block
+   actually shop by (`src/ops/lib/era.php`, `src/ops/lib/era-jp.php` — the Japanese block
    list is its own, ADV/PCG/LEGEND are not Western eras renamed), beneath a print
-   region level (`ops/lib/region.php`).
+   region level (`src/ops/lib/region.php`).
 2. **Set artwork comes from pokemontcg.io.** TCGplayer publishes no set logos.
    114 of the 217 groups get artwork; the rest render clean without it.
 

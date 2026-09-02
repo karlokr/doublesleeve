@@ -87,13 +87,13 @@ offers "10 Gem Mint" and (PSA, 10 Black Label) cannot exist.
 
 The shop carries **PSA, BGS, CGC and TAG only**. That is not a preference about
 grading companies — a graded SKU's photograph is the card composited into *its*
-grader's holder, and `ops/assets/slab-templates` holds frames for those four and
+grader's holder, and `src/ops/assets/slab-templates` holds frames for those four and
 nobody else. A company in the vocabulary with no frame behind it is a filter a
 shopper can select to be shown nothing, and an intake path that would produce a
 slab photographed in the wrong holder.
 
 ACE and SGC shipped in the original vocabulary and never had frames or stock;
-`ops/migrations/retire-ungraded-graders.php` removes them and refuses to touch
+`src/ops/migrations/retire-ungraded-graders.php` removes them and refuses to touch
 any company that turns out to have combinations, so it cannot delete stock. To
 carry a fifth company, add its frame first — the migration's list is the same
 list the templates directory is.
@@ -123,7 +123,7 @@ identity (cert number, photos of the actual slab) belongs to the copies module,
 which serialises raw stock the same way.
 
 Graded prices come from sold auctions, not from a multiplier on the raw price —
-see the graded pass in `ops/pricing/price-sync.php`.
+see the graded pass in `src/ops/pricing/price-sync.php`.
 
 ## TCGplayer printing names are only unambiguous inside their group
 
@@ -143,10 +143,10 @@ tile reading "Holofoil" next to one reading "1st Edition Holofoil" invites the
 reader to assume the first is the earlier printing. It is the later one, and
 worth an order of magnitude less.
 
-`ops/lib/printing.php` holds the rename, keyed on the TCGplayer **group id**
+`src/ops/lib/printing.php` holds the rename, keyed on the TCGplayer **group id**
 (the set name is localised and shared across regions). `sku-rebuild` applies it
 when building combinations, so a rebuild cannot undo it, and
-`ops/migrations/base-set-unlimited.php` applies it to stock that already exists.
+`src/ops/migrations/base-set-unlimited.php` applies it to stock that already exists.
 
 It is a **naming** change only. The price engine matches on `tcgplayer_subtype`
 in `cc_price_source_map`, which keeps TCGplayer's own name, so renaming cannot
@@ -177,7 +177,7 @@ Both halves must be complete or a facet only works in one direction: only the
 shadowless side was ever stamped, so a shopper could filter to Shadowless and had
 no way to ask for the commoner, cheaper shadowed run sitting beside it.
 
-`ops/audits/audit-editions.php` checks both — that every SKU in an edition-split
+`src/ops/audits/audit-editions.php` checks both — that every SKU in an edition-split
 set states its edition, and that every product in a shadowless/shadowed pair
 states its print run. It finds the pair from the category names, so a second
 shadowless set would be covered without editing the audit.
@@ -218,7 +218,7 @@ and tax**, and neither is driven by storefront language:
 If you still want a distinct en-CA storefront (its main real benefit is `YYYY-MM-DD`
 dates and `$` rather than `CA$` for CAD), add it in *International → Localization →
 Languages* with locale `en-CA` and a unique two-letter ISO code, then duplicate the
-English translations. Set `LOCALES` in `ops/setup/setup.php` if you want it
+English translations. Set `LOCALES` in `src/ops/setup/setup.php` if you want it
 provisioned automatically.
 
 ### Auto-switching currency by visitor location

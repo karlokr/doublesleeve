@@ -1,14 +1,21 @@
 SHELL := /bin/bash
-COMPOSE := docker compose
+# Pinned, not inferred. Compose names volumes after the project, and the project
+# defaults to the directory the compose file sits in - so moving that file under
+# devops/dev/ would have silently started a second, empty shop and orphaned the
+# real one's database and 3.6 GB of imagery. --project-directory keeps the build
+# context and every relative path anchored at the repository root.
+COMPOSE := docker compose --project-name cryptocards --project-directory . \
+	--env-file .env -f devops/dev/compose.yml
 SHOP := cryptocards-shop
 DB := cryptocards-db
+APP_IMAGE := ghcr.io/karlokr/doublesleeve
 
 include .env
 export
 
 .DEFAULT_GOAL := help
 
-.PHONY: help up down restart logs shell dbshell provision reset backup status
+.PHONY: help up down restart logs shell dbshell provision reset backup status image image-push
 
 help: ## Show available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -54,6 +61,16 @@ provision: ## Apply CryptoCards config + Pokemon catalog model (idempotent)
 	docker exec -u www-data $(SHOP) php /provisioning/migrations/retire-print-region.php
 	docker exec -u www-data $(SHOP) php /provisioning/setup/translations.php
 	docker exec -u www-data $(SHOP) php /provisioning/catalog/search-index.php
+
+image: ## Build the deployable image (PrestaShop + our modules and ops)
+	docker build -f devops/image/Dockerfile \
+		-t $(APP_IMAGE):$(shell git rev-parse --short HEAD) \
+		-t $(APP_IMAGE):latest .
+	@echo "built $(APP_IMAGE):$(shell git rev-parse --short HEAD)"
+
+image-push: image ## Push the image to the registry
+	docker push $(APP_IMAGE):$(shell git rev-parse --short HEAD)
+	docker push $(APP_IMAGE):latest
 
 search-index: ## Rebuild the Meilisearch index from the catalogue
 	docker exec -u www-data $(SHOP) php /provisioning/catalog/search-index.php

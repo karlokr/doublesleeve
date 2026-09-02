@@ -32,7 +32,7 @@ first-hand. This plan goes to those sources directly.
 | **TCGplayer API** | Market / low / mid / high / direct-low, live | Application + approval, partner-oriented | Upgrade path from TCGCSV |
 | **pokemontcg.io** | TCGplayer + Cardmarket snapshots per card | Free, keyed | Cross-check, already wired in |
 | **eBay Browse / Marketplace Insights** | Active listings, and *sold* comps with approval | Free tier + approval for sold data | **Reality check** — what things actually sell for |
-| **PriceCharting** | Graded per-tier estimates + sold comps | Free (scraped) | Card pages carry per-tier sold-listing tables; see `ops/lib/graded-quotes.php` |
+| **PriceCharting** | Graded per-tier estimates + sold comps | Free (scraped) | Card pages carry per-tier sold-listing tables; see `src/ops/lib/graded-quotes.php` |
 | **130point** | eBay sold listings | Free (scraped) | Freshest graded sales; rate-limits by IP, engine degrades gracefully |
 | **Cardmarket** | European prices in EUR | Keyed | Only if you sell into the EU |
 | **JustTCG / tcgapi.dev** | Commercial aggregated TCG pricing | Paid subscription | Shortcut if you'd rather buy than build |
@@ -126,7 +126,7 @@ nothing custom was built. It was inert for two config reasons, both fixed:
 - USD sat at `conversion_rate = 1.000000`, identical to CAD, so even with the
   feature on every price rendered the same number with a different label.
 
-`ops/pricing/currency-sync.php` sets the rates and runs from cron at **00:05 and
+`src/ops/pricing/currency-sync.php` sets the rates and runs from cron at **00:05 and
 12:05**, deliberately ahead of the price engine at :15 — both read the same Bank
 of Canada rate, and a stale `conversion_rate` mis-prices every USD order. If Valet
 is unreachable it falls back to the last rate cached in `price_fx` rather than

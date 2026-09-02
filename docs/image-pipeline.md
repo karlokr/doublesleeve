@@ -5,7 +5,7 @@ a white sweep, set logos arrive on whatever plate the source exported, and both
 have to end up on a transparent background so they sit on a dark page without a
 box drawn around them.
 
-`ops/lib/cutout.php` is the shared floor. `ops/media/*` are the passes that use
+`src/ops/lib/cutout.php` is the shared floor. `src/ops/media/*` are the passes that use
 it. Nothing else should touch GD directly.
 
 ---
@@ -28,7 +28,7 @@ repo's tooling, so state which one a number is in whenever it matters.
 `cutoutSave()` calls `imagepng()` regardless of the filename. The extension is
 PrestaShop's convention and its templates depend on it; the bytes are PNG,
 because JPEG cannot carry an alpha channel at all. This is why
-`ops/assets/card-back.jpg` could never have had a transparent background no
+`src/ops/assets/card-back.jpg` could never have had a transparent background no
 matter what the source asset was.
 
 Corollary: **never use `ImageManager::resize()`** on anything in this pipeline.
@@ -103,8 +103,8 @@ on the real logo corpus.
 
 ## 3. Slab frames
 
-`ops/media/make-slab-frames.php` generates one frame per grader per grade — 52 of
-them — into `ops/assets/slabs/`.
+`src/ops/media/make-slab-frames.php` generates one frame per grader per grade — 52 of
+them — into `src/ops/assets/slabs/`.
 
 Each grading company gets its own **template photograph** of its holder rather
 than a recoloured PSA one: a buyer looking at a listing should see the holder
@@ -143,7 +143,7 @@ dressing a card in a competitor's holder misrepresents the item.
 
 ## 4. Slab photos
 
-`ops/media/slab-photos.php` composites each graded copy's card scan into the frame
+`src/ops/media/slab-photos.php` composites each graded copy's card scan into the frame
 for *its* grader and grade, and wires the result to that combination.
 
 It covers the whole catalogue, not a fixture list, and is **self-healing**: a
@@ -158,7 +158,7 @@ clear of the label, then the column through its centre.
 
 ## 5. Card backs
 
-Backs are region- and date-dependent, resolved by `ops/lib/cardback.php`:
+Backs are region- and date-dependent, resolved by `src/ops/lib/cardback.php`:
 
 | Back | Applies to |
 |---|---|
@@ -183,8 +183,8 @@ Chinese and Korean backs are deliberately absent rather than approximated.
 
 Set logos come from pokemontcg.io (Western) and the Bulbagarden Archives
 (Japanese, indexed by set code — the one identifier unambiguous across
-languages). `ops/media/seed-category-images.php` writes the category image;
-`ops/media/seed-nav-images.php` writes the menu and homepage tiles.
+languages). `src/ops/media/seed-category-images.php` writes the category image;
+`src/ops/media/seed-nav-images.php` writes the menu and homepage tiles.
 
 Both **remove a flat background before trimming**. Trimming alone does not help:
 it looks for transparent *margins*, and an image that is opaque everywhere has

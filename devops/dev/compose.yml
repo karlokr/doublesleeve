@@ -58,9 +58,9 @@ services:
       - "${PS_PORT}:80"
     volumes:
       - ps_html:/var/www/html
-      - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/zz-cryptocards.ini:ro
-      - ./ops:/provisioning:ro
-      - ./modules:/modules:ro
+      - ./devops/image/php/custom.ini:/usr/local/etc/php/conf.d/zz-cryptocards.ini:ro
+      - ./src/ops:/provisioning:ro
+      - ./src/modules:/modules:ro
 
   phpmyadmin:
     image: phpmyadmin:5
@@ -82,7 +82,7 @@ services:
   cron:
     build:
       context: .
-      dockerfile: docker/cron/Dockerfile
+      dockerfile: devops/image/cron/Dockerfile
     container_name: cryptocards-cron
     restart: unless-stopped
     depends_on:
@@ -95,9 +95,9 @@ services:
       TZ: ${TZ:-UTC}
     volumes:
       - ps_html:/var/www/html
-      - ./ops:/provisioning:ro
-      - ./modules:/modules:ro
-      - ./docker/php/custom.ini:/usr/local/etc/php/conf.d/zz-cryptocards.ini:ro
+      - ./src/ops:/provisioning:ro
+      - ./src/modules:/modules:ro
+      - ./devops/image/php/custom.ini:/usr/local/etc/php/conf.d/zz-cryptocards.ini:ro
 
   meilisearch:
     image: getmeili/meilisearch:v1.53

@@ -56,7 +56,7 @@ tiles, product page, cart lines, the copy pickers.
 ### 0b. Stock a TAG card, and write down the grader policy — done
 Two TAG slabs seeded (Umbreon VMAX TAG 10, Paldean Fates Mew ex TAG 9.5); ACE
 and SGC retired from the vocabulary by
-`ops/migrations/retire-ungraded-graders.php`; policy written into
+`src/ops/migrations/retire-ungraded-graders.php`; policy written into
 `pokemon-catalog.md`. Original ask: Seed one or two TAG-graded cards. Document that the shop
 carries **PSA, BGS, CGC and TAG only** — no ACE, no others. Those four are the
 only slab frames that exist, which is the constraint the policy follows from.
@@ -70,8 +70,8 @@ another tab, so a set named differently here is a set they cannot find.
 **English is done.** Their catalogue is keyed on the same TCGplayer group ids
 ours is, so the join is exact — no name matching. All 175 of their English sets
 exist in our database; 163 names already agreed and 10 were renamed by
-`ops/catalog/align-collectr.php`, which is idempotent and re-runnable as their
-list moves. Their list is checked in at `ops/data/collectr-sets-en.tsv`.
+`src/ops/catalog/align-collectr.php`, which is idempotent and re-runnable as their
+list moves. Their list is checked in at `src/ops/data/collectr-sets-en.tsv`.
 
 **Two are held back deliberately.** Collectr calls group 604 "Base Set
 (Unlimited)" and 1663 "Base Set (1st Edition & Shadowless)" — better names than
@@ -83,7 +83,7 @@ neither rule, so the Not Shadowless chip and the print-run facet would go quiet
 with nothing on screen to say so.
 
   **To close it:** key that detection on the group id, the way
-  `ops/lib/printing.php` already keys the printing renames, then delete the
+  `src/ops/lib/printing.php` already keys the printing renames, then delete the
   `HOLD` list in `align-collectr.php`. Check the other name readers at the same
   time — `audits/audit-parallel-sets.php`, `audits/audit-printings.php`,
   `media/seed-nav-images.php`, `catalog/fetch-set-names.php`.
@@ -104,18 +104,17 @@ artwork keeps coming from pokemontcg.io and the Bulbagarden Archives.
 Asked 2026-08-15. Plan written. Five pieces, in the order that makes each next
 one cheaper.
 
-**a. Put the shop in its own image.** Today nothing is versioned as
-"PrestaShop + our shop" — the base image runs and our work is bind-mounted
-beside it. A `Dockerfile` that is `FROM prestashop/prestashop:9.1.4` plus our
-`modules/` and `ops/` gives a taggable artifact, makes a PrestaShop upgrade a
-one-line `FROM` bump, and makes rollback real.
+**a. Put the shop in its own image — DONE.** `devops/image/Dockerfile` is
+`FROM prestashop/prestashop:9.1.4-8.3` plus `src/modules/` and `src/ops/`;
+`make image` tags it from the git sha. `devops/prod/compose.yml` runs that image
+and mounts **only** the state paths — `img/`, `var/`, `upload/`, `download/`,
+`app/config` — never `/var/www/html` itself, which would hide the baked code.
+Built and verified: the modules, `/provisioning` and the php ini are all inside.
 
-  The catch is the whole trick: the compose file currently mounts a volume over
-  **all** of `/var/www/html`, which would hide anything baked in. That volume
-  has to shrink to the paths that hold state — `img/`, `var/`, `config/`,
-  `app/config/parameters.php`, `upload/`, `download/`. It also deletes work:
-  `install-theme-module.sh` only copies files because the module lives outside
-  the image.
+  Still to do before it deploys for real: push to GHCR from CI, and simplify
+  `install-theme-module.sh`, which only copies files because the module used to
+  live outside the image. In production it should register hooks and nothing
+  else.
 
 **b. Put the images on a diet, before engineering any backup for them.**
 3.6 GB, of which 703 MB is originals kept at source resolution (largest 4.7 MB)
@@ -140,7 +139,7 @@ rehearse migrations that is not production.
 
 ### 2. Re-anchor graded prices via the price-sync graded pass
 Graded combinations are still priced off the ungraded anchor. Run or extend the
-graded pass in `ops/pricing/price-sync.php` so PSA/BGS/CGC tiers take their own
+graded pass in `src/ops/pricing/price-sync.php` so PSA/BGS/CGC tiers take their own
 PriceCharting columns.
 
 On PriceCharting card pages the `td` ids `used_price` / `new_price` /
@@ -176,9 +175,9 @@ Decided with the user 2026-08-15. See `information-architecture.md`,
 Found while adding `Card Language`; none of them block anything today.
 
 - `Sealed Product Type` is set on **54 of 62** — the eight Japanese items
-  (products 387–394, seeded by `ops/inventory/seed-japanese.php`) never get one,
+  (products 387–394, seeded by `src/ops/inventory/seed-japanese.php`) never get one,
   so they are missing from that facet.
 - `Seal Status` is `Factory Sealed` on all 62. A constant carries no information
-  and it still occupies a filter rail in `ops/setup/facets.php`.
+  and it still occupies a filter rail in `src/ops/setup/facets.php`.
 - `Release Year` is set on **0 of 62** and also has a rail, which is therefore
   always empty.

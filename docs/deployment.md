@@ -37,7 +37,7 @@ work here, for four reasons:
 
 **Migrate forward.** The database is a living thing that moves from state to
 state; deploys carry it forward, never rebuild it. This is the model to adopt,
-and most of the machinery already exists — every script under `ops/migrations/`
+and most of the machinery already exists — every script under `src/ops/migrations/`
 is written to be idempotent and to refuse to damage stock it did not expect.
 
 The consequence worth being explicit about: **once the shop takes its first
@@ -48,7 +48,7 @@ change it safely rather than to reproduce it.
 
 Four kinds of change, three different mechanisms:
 
-**Code** — modules, theme, ops scripts. Ships from git. `modules/` is a
+**Code** — modules, theme, ops scripts. Ships from git. `src/modules/` is a
 read-only bind mount and the shop runs a *copy*, so a deploy is
 `git pull` plus the installer for whatever changed:
 
@@ -58,8 +58,8 @@ docker exec -u www-data cryptocards-shop rm -rf /var/www/html/var/cache/prod
 ```
 
 **Schema and configuration** — attribute groups, features, facet templates,
-vocabulary. Ships as ordered idempotent scripts under `ops/setup/` and
-`ops/migrations/`. This is the part that needs a ledger (below).
+vocabulary. Ships as ordered idempotent scripts under `src/ops/setup/` and
+`src/ops/migrations/`. This is the part that needs a ledger (below).
 
 **Catalogue data** — sets, products, prices. Does *not* ship. It is changed in
 place by running an ops script against the live database, exactly as it is
@@ -128,7 +128,7 @@ testing a catalogue change and performing it on customers.
 
 ## The deployable artifact: our own image
 
-Today `docker-compose.yml` runs `prestashop/prestashop:${PS_VERSION}` and our
+Today `devops/dev/compose.yml` runs `prestashop/prestashop:${PS_VERSION}` and our
 work sits *beside* it as bind mounts — `./ops:/provisioning`, `./modules:/modules`
 — with an installer copying modules into the running container. That is right
 for development and wrong for deployment, because it means **no artifact
@@ -139,8 +139,8 @@ Build one:
 
 ```dockerfile
 FROM prestashop/prestashop:9.1.4
-COPY modules/ /var/www/html/modules/
-COPY ops/     /provisioning/
+COPY src/modules/ /var/www/html/modules/
+COPY src/ops/     /provisioning/
 ```
 
 Everything Docker is supposed to give you then does:
