@@ -26,6 +26,14 @@ FROM prestashop/prestashop:9.1.4-8.3
 # Our modules live where PrestaShop expects modules to live. In development the
 # installers copy them in from a bind mount; here they simply are where they
 # belong, and the installers have nothing left to copy.
+# Without this the pushed package is an orphan: GHCR shows it under the account
+# but the repository page says "No packages published", which reads exactly like
+# a release that published notes without ever pushing an image. The label is
+# what associates the two.
+LABEL org.opencontainers.image.source="https://github.com/karlokr/doublesleeve" \
+      org.opencontainers.image.description="DoubleSleeve: Pokemon TCG store on PrestaShop 9" \
+      org.opencontainers.image.licenses="UNLICENSED"
+
 COPY --chown=www-data:www-data src/modules/ /var/www/html/modules/
 
 # The operator's scripts, at the path every one of them already assumes. Nothing

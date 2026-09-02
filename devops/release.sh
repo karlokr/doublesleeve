@@ -18,6 +18,11 @@
 # an unpushed commit, a tag that already exists, a registry it cannot reach -
 # each stops the run BEFORE the image is built, because a half-published release
 # is worse than none.
+#
+# ORDER MATTERS, and it is: build, push, THEN tag and publish. The git tag and
+# the GitHub release are created only once the image is in the registry, so a
+# release can never name an image that was never pushed. If the push fails, no
+# tag exists and the same command can simply be run again.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
