@@ -38,6 +38,8 @@ bash_run() { bash "/provisioning/$1" "${@:2}"; }
 
 STEP=0
 FAILED=()
+# Tracked apart from FAILED on purpose - see the baseline block at the bottom.
+MIGRATIONS_FAILED=0
 
 step() {
     STEP=$((STEP + 1))
@@ -55,6 +57,7 @@ run() {
     if ! "$@"; then
         printf '[bootstrap]   !! FAILED: %s\n' "$what"
         FAILED+=("step $STEP: $what")
+        case "$*" in *migrations/*) MIGRATIONS_FAILED=1 ;; esac
     fi
 }
 
@@ -187,9 +190,20 @@ fi
 # shop, so record them as applied rather than leaving the next container start
 # to run them again against a shop that already has them. This also creates the
 # ledger table, which is what tells the entrypoint the shop is ready.
-if [ ${#FAILED[@]} -eq 0 ]; then
+#
+# Gated on the MIGRATION steps only, deliberately - not on ${#FAILED[@]}.
+# Requiring a clean run of all forty-odd scripts made an unrelated upstream
+# hiccup - a language pack that would not download - permanently prevent the
+# ledger from existing, and with no ledger the entrypoint skips migrations on
+# every future deploy. A cosmetic failure must not disable the migration system.
+if [ "$MIGRATIONS_FAILED" = "0" ]; then
     printf '\n[bootstrap] ======== baselining the migration ledger\n'
     run "baseline" php_run deploy/migrate.php --baseline
+else
+    printf '\n[bootstrap] !! a migration failed, so the ledger is NOT baselined.\n'
+    printf '[bootstrap] !! migrations stay disabled until this is fixed and\n'
+    printf '[bootstrap] !! bootstrap is re-run. That is deliberate: baselining\n'
+    printf '[bootstrap] !! now would record a migration that never applied.\n'
 fi
 
 printf '\n[bootstrap] ========================================\n'

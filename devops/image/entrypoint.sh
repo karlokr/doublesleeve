@@ -112,7 +112,14 @@ LEDGER=$(mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWD" -N -B 
          WHERE table_schema='$DB_NAME' AND table_name LIKE '%cc_migration'" 2>/dev/null || echo 0)
 
 if [ "${LEDGER:-0}" = "0" ]; then
-    log "no migration ledger: shop not bootstrapped yet, skipping migrations"
+    log "!! ============================================================"
+    log "!! NO MIGRATION LEDGER. This shop has tables but bootstrap never"
+    log "!! finished, so nothing records which migrations have been applied"
+    log "!! and every future deploy will SKIP THEM SILENTLY."
+    log "!!"
+    log "!! Finish the build, which baselines the ledger:"
+    log "!!   docker exec <shop> bash /provisioning/deploy/bootstrap.sh --from 2"
+    log "!! ============================================================"
     exec docker-php-entrypoint /tmp/docker_run.sh
 fi
 
