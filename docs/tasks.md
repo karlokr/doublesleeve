@@ -144,8 +144,17 @@ PHP, JS and shell syntax, both compose files parse, and the image builds
 PR (patch by default), builds and pushes to GHCR tagged with the version, the
 sha and `latest`, then creates the git tag and GitHub release.
 
-  Needs from you: create the `production` branch, and confirm GHCR package
-  permissions the first time it pushes.
+  **Blocked on the account, not the code.** Both workflows register as `active`
+  and Actions is `enabled` on the repo, but every run — including a three-line
+  smoke test with nothing in it — ends instantly in `startup_failure` with
+  `path: BuildFailed`. That rules the workflow files out. It is almost always
+  exhausted Actions minutes on a private repository, which the API would not
+  confirm without a wider token scope. Check
+  github.com/settings/billing; the alternatives are making the repo public
+  (Actions are free there) or running the release build from the machine with
+  `make image-push`, which needs no CI at all.
+
+  The `production` branch and the `major` / `minor` labels are created.
 
 **f. One ordered `make bootstrap`, and a second environment.** Every target
 needed to build a shop from nothing exists, but the order is tribal knowledge
