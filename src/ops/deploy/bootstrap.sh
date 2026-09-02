@@ -13,13 +13,17 @@
 #   docker exec <shop> bash /provisioning/deploy/bootstrap.sh
 #   docker exec <shop> bash /provisioning/deploy/bootstrap.sh --from 5
 #
-# ORDER IS LOAD-BEARING and is not alphabetical. Two hazards it encodes:
+# ORDER IS LOAD-BEARING and is not alphabetical. Four hazards it encodes, each
+# of which has actually broken a deploy:
 #
-#   - purge-demo must run BEFORE real inventory. It deletes every product, so
-#     running it later would delete the catalogue this builds.
-#   - setup.php (step 2) recreates taxonomy that the align scripts (step 9)
-#     delete. It must never run after them. That has resurrected retired data
-#     twice; it is why this file exists rather than a README someone follows.
+#   - purge-demo must run BEFORE inventory. It deletes every product.
+#   - set taxonomy must run BEFORE inventory. The seeds file each card into its
+#     set category by name; without the sets, every single is rejected with
+#     "unknown set category" and the catalogue comes up empty.
+#   - the USD/CAD rate must exist BEFORE inventory. Every seed converts source
+#     prices to CAD and refuses to guess.
+#   - setup.php (step 2) recreates taxonomy the align scripts (step 4) delete,
+#     so it must never run after them. That has resurrected retired data twice.
 #
 # This is not hermetic: it fetches from tcgcsv, pokemontcg.io, the Bulbagarden
 # Archives, PriceCharting and the Bank of Canada. That is fine and expected -
@@ -38,10 +42,10 @@ FAILED=()
 step() {
     STEP=$((STEP + 1))
     if [ "$STEP" -lt "$FROM_STEP" ]; then
-        printf '\n[bootstrap] %d/%d  %s (skipped)\n' "$STEP" 9 "$1"
+        printf '\n[bootstrap] %d/%d  %s (skipped)\n' "$STEP" 11 "$1"
         return 1
     fi
-    printf '\n[bootstrap] ======== %d/%d  %s\n' "$STEP" 9 "$1"
+    printf '\n[bootstrap] ======== %d/%d  %s\n' "$STEP" 11 "$1"
     return 0
 }
 
@@ -104,6 +108,32 @@ if step "delete PrestaShop's demo catalogue"; then
 fi
 
 # 4 ------------------------------------------------------------------------
+# BEFORE inventory. The seeds file each card into its set category by name, and
+# without these the whole singles catalogue lands nowhere: "unknown set
+# category: Base (BS)" repeated a few hundred times and zero products created.
+#
+# Safe here rather than earlier because these DELETE taxonomy that setup.php
+# recreates - so they must follow step 2, and setup.php must never run again
+# after them.
+if step "set taxonomy"; then
+    run "tcgplayer sets" php_run catalog/sets-tcgplayer.php
+    run "collectr names" php_run catalog/align-collectr.php
+    run "facets"         php_run setup/facets.php
+    run "cms pages"      php_run setup/pages.php
+fi
+
+# 5 ------------------------------------------------------------------------
+# Also BEFORE inventory. Every seed converts USD source prices into CAD and
+# refuses to guess: no rate in price_fx means no products. price-sync caches the
+# Bank of Canada rate even on a dry run, which is all that is needed here -
+# there is nothing to reprice yet.
+if step "price engine and the USD/CAD rate"; then
+    run "price schema"   php_run setup/price-schema.php
+    run "fetch fx rate"  php_run pricing/price-sync.php
+    run "currency rates" php_run pricing/currency-sync.php
+fi
+
+# 6 ------------------------------------------------------------------------
 if step "real inventory"; then
     run "singles and sealed" php_run inventory/seed-inventory.php
     run "japanese"           php_run inventory/seed-japanese.php
@@ -111,7 +141,7 @@ if step "real inventory"; then
     run "graded slabs"       php_run inventory/seed-graded.php
 fi
 
-# 5 ------------------------------------------------------------------------
+# 7 ------------------------------------------------------------------------
 # The slow part, and where the disk goes.
 if step "imagery"; then
     run "category images"  php_run media/seed-category-images.php
@@ -122,19 +152,18 @@ if step "imagery"; then
     run "storefront tiles" php_run setup/storefront.php
 fi
 
-# 6 ------------------------------------------------------------------------
+# 8 ------------------------------------------------------------------------
 if step "serialised copies"; then
     run "copies schema" php_run setup/copies-schema.php
 fi
 
-# 7 ------------------------------------------------------------------------
+# 9 ------------------------------------------------------------------------
+# Now there is stock to price.
 if step "prices"; then
-    run "price schema"    php_run setup/price-schema.php
-    run "currency rates"  php_run pricing/currency-sync.php
-    run "sync and apply"  php_run pricing/price-sync.php --apply
+    run "sync and apply" php_run pricing/price-sync.php --apply
 fi
 
-# 8 ------------------------------------------------------------------------
+# 10 -----------------------------------------------------------------------
 # Base Set printings, then SKU rebuild, then titles - derive-names reads the
 # printing and set names those two settle.
 if step "naming and SKUs"; then
@@ -143,14 +172,11 @@ if step "naming and SKUs"; then
     run "derive titles"      php_run catalog/derive-names.php
 fi
 
-# 9 ------------------------------------------------------------------------
-# Last, because these DELETE taxonomy that setup.php would recreate.
-if step "set taxonomy and search index"; then
-    run "tcgplayer sets" php_run catalog/sets-tcgplayer.php
-    run "collectr names" php_run catalog/align-collectr.php
-    run "facets"         php_run setup/facets.php
-    run "cms pages"      php_run setup/pages.php
-    run "search index"   php_run catalog/search-index.php
+# 11 -----------------------------------------------------------------------
+# Last: both read the finished catalogue.
+if step "facets and search index"; then
+    run "facets"       php_run setup/facets.php
+    run "search index" php_run catalog/search-index.php
 fi
 
 # --------------------------------------------------------------------------
