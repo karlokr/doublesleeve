@@ -83,7 +83,7 @@ fi
 
 # 2 ------------------------------------------------------------------------
 # Config, catalogue model, modules, facets, translations. MUST precede the
-# align scripts in step 9 - setup.php recreates taxonomy they delete.
+# align scripts in step 4 - setup.php recreates taxonomy they delete.
 if step "configuration and catalogue model"; then
     run "shop configuration"      php_run setup/setup.php
     run "facets"                  php_run setup/facets.php
