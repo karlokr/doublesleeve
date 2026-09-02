@@ -87,8 +87,14 @@ fi
 say "logging in to ghcr.io"
 gh auth token | docker login ghcr.io -u "$(gh api user --jq .login)" --password-stdin >/dev/null
 
+# --provenance=false because buildx otherwise pushes an OCI image INDEX with an
+# extra unknown/unknown manifest holding a provenance attestation. GHCR reads
+# org.opencontainers.image.source from a plain image manifest, so with the index
+# it never sees the label and the package stays unlinked from the repository -
+# which shows up as "No packages published" beside a release that did push one.
+# Single platform here anyway, so the attestation buys nothing.
 say "building"
-docker build -f devops/image/Dockerfile \
+docker build --provenance=false -f devops/image/Dockerfile \
   -t "$IMAGE:$VERSION" \
   -t "$IMAGE:$LOCAL" \
   -t "$IMAGE:latest" .
