@@ -115,7 +115,12 @@ services:
         traefik.http.routers.doublesleeve.service: doublesleeve
         traefik.http.services.doublesleeve.loadbalancer.server.port: 80
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      # X-Forwarded-Proto matters. Without it PrestaShop sees a plain-http
+      # request, redirects to https, and curl -f treats the 302 as success - so
+      # the check passed while the storefront was in an infinite redirect loop
+      # and never rendered a page. With the header it must return a real 200,
+      # which is what makes failure_action: rollback mean anything.
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null -H 'X-Forwarded-Proto: https' http://localhost/ || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 6
