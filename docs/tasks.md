@@ -150,15 +150,11 @@ GitLab's own CI lint, which reports it valid.
   anything a workflow file can address. The workflows are deleted.
 
   **The one thing left: that GitLab has zero registered runners**, and a
-  pipeline with no runner sits PENDING rather than failing. `devops/ci/` holds
-  the runner: a compose file and a README with the exact registration command.
-
-  It is deliberately not a Swarm service and deliberately not privileged. Swarm
-  cannot run privileged services, so docker-in-docker was never an option there;
-  the runner binds the host Docker socket instead. That is root-on-host for any
-  job, which is the right trade on a single-tenant GitLab running only your own
-  code, and it means the 2.7 GB image builds against a warm layer cache instead
-  of re-pulling its base every pipeline.
+  pipeline with no runner sits PENDING rather than failing. The runner lives with
+  the GitLab stack, not in this repository: it is shared infrastructure that
+  serves every project on that server, outlives any one application, and holds a
+  registration token. What this repo states is only what the pipeline assumes of
+  it, in `docs/deployment.md`.
 
 **f. One ordered `make bootstrap`, and a second environment.** Every target
 needed to build a shop from nothing exists, but the order is tribal knowledge

@@ -248,6 +248,54 @@ executor in privileged mode.
 Images carry three tags: the version (what you deploy), the commit sha (what
 makes a running container traceable to an exact tree), and `latest`.
 
+## What the pipeline needs from a runner
+
+The runner itself is **not in this repository**, and should not be. It is shared
+infrastructure belonging to the GitLab instance: one runner serves every project
+on that server, it outlives any single application, and its registration token
+is infrastructure state. It belongs beside the GitLab stack. What belongs here
+is only the pipeline, and this statement of what the pipeline assumes.
+
+The pipeline needs a runner that:
+
+- **Can build images.** Either the host Docker socket mounted into jobs, or a
+  privileged runner with a `docker:dind` service. `.gitlab-ci.yml` declares no
+  `dind` service, so it currently assumes the socket.
+- **Picks up untagged jobs**, or every job here needs a matching tag added.
+
+Two notes specific to that GitLab, because they cost time otherwise:
+
+- It runs as a **Swarm** service, and Swarm cannot run privileged services. The
+  usual privileged-runner-plus-dind recipe therefore cannot be part of that
+  stack; a runner has to be an ordinary container on whichever node builds.
+- GitLab 19 issues **runner authentication tokens** (`glrt-...`) from
+  Settings > CI/CD > Runners. The older `--registration-token` flow is gone, so
+  most guides you will find are wrong.
+
+Socket-mounting means any job is root on that host. On a single-tenant instance
+running only your own code that is the same trust you extend to `docker run`,
+and it buys a warm layer cache, which matters because the image is mostly
+unchanging base layers. Kaniko is the alternative if that stops being true.
+
+**A pipeline with no runner sits PENDING rather than failing.** If nothing
+happens after a push, that is what it is:
+
+```bash
+curl -s -H "PRIVATE-TOKEN: $TOKEN" \
+  https://gitlab.karlokrakan.me/api/v4/projects/karlokr%2Fdoublesleeve/runners
+```
+
+An empty array is the answer.
+
+### Pulling the image in production
+
+The production host needs a deploy token with `read_registry`
+(Settings > Repository > Deploy tokens):
+
+```bash
+docker login registry.karlokrakan.me -u <token-user> -p <token>
+```
+
 ## Suggested shape
 
 Nothing here needs Kubernetes. A single host running the same compose file is
