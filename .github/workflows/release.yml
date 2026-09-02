@@ -14,7 +14,7 @@ name: Release
 on:
   pull_request:
     types: [closed]
-    branches: [production]
+    branches: [release/production]
 
 permissions:
   contents: write      # create the tag and the release

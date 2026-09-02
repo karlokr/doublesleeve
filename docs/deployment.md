@@ -237,7 +237,7 @@ web container serving traffic.
 
 ## The release, and where versions come from
 
-A pull request merged into `production` builds the image, tags it, and cuts a
+A pull request merged into `release/production` builds the image, tags it, and cuts a
 GitHub release. The version comes from a **label on the pull request** —
 `major`, `minor`, or nothing for a patch — rather than from parsing commit
 subjects. A label is a deliberate act, visible before the merge, and it does not

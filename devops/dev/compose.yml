@@ -18,7 +18,13 @@ services:
       start_period: 30s
 
   prestashop:
-    image: prestashop/prestashop:${PS_VERSION}
+    # Built from the same Dockerfile production runs, so the PrestaShop version
+    # is stated once - in that file's FROM - instead of here and there. The
+    # bind mounts below then sit on top of the baked copies, so editing src/ is
+    # still live.
+    build:
+      context: ../..
+      dockerfile: devops/image/Dockerfile
     container_name: cryptocards-shop
     restart: unless-stopped
     depends_on:

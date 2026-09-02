@@ -140,7 +140,7 @@ baselined at 6.
 **e. CI and releases — DONE.** `.github/workflows/ci.yml` runs on every PR:
 PHP, JS and shell syntax, both compose files parse, and the image builds
 (without pushing). `.github/workflows/release.yml` runs when a PR merges into
-`production`: it works out the next semver from a `major`/`minor` label on the
+`release/production`: it works out the next semver from a `major`/`minor` label on the
 PR (patch by default), builds and pushes to GHCR tagged with the version, the
 sha and `latest`, then creates the git tag and GitHub release.
 
@@ -154,7 +154,7 @@ sha and `latest`, then creates the git tag and GitHub release.
   (Actions are free there) or running the release build from the machine with
   `make image-push`, which needs no CI at all.
 
-  The `production` branch and the `major` / `minor` labels are created.
+  The `release/production` branch and the `major` / `minor` labels are created.
 
 **f. One ordered `make bootstrap`, and a second environment.** Every target
 needed to build a shop from nothing exists, but the order is tribal knowledge

@@ -13,6 +13,14 @@
 # IMPORTANT: production must not mount a volume over /var/www/html. A volume
 # over that path hides everything copied in below - see devops/prod/compose.yml,
 # which mounts only the directories that genuinely hold state.
+# The PrestaShop version lives HERE and nowhere else. It used to also be a
+# PS_VERSION entry in .env, which meant an environment file could disagree with
+# the image about which PrestaShop this is - and once the image is the artifact,
+# the image is the only thing that can be right. Upgrading is this line, plus
+# the same line in cron/Dockerfile.
+#
+# Tag format is <ps-version>-<php-version>. PS 9 supports PHP 8.2-8.5; 8.3 is
+# the safest bet for third-party modules.
 FROM prestashop/prestashop:9.1.4-8.3
 
 # Our modules live where PrestaShop expects modules to live. In development the
