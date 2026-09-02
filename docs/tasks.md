@@ -100,23 +100,7 @@ pass with human review of the ambiguous ones.
 **Their images were fetched and then deleted at the user's request** — set
 artwork keeps coming from pokemontcg.io and the Bulbagarden Archives.
 
-### 1. Commit all outstanding work
-**Highest risk.** Everything since the baseline commit `75a8a37` is uncommitted:
-
-- the repository reorganisation (`provisioning/` → `ops/` + `modules/`)
-- the `cc_card_copy` schema change (PK now includes `copy_uid`)
-- three front controllers — `cryptocards_copies/choose`, `cryptocards_theme/copies`,
-  `cryptocards_theme/printings`
-- three migrations — `base-set-unlimited.php`, `seed-copy-depth.php`,
-  `sealed-card-language.php`
-- the whole copy-selection system in `theme.js` / `theme.css`
-- the cart line rebuild and the docs rebuild
-
-Several near-misses have already threatened this: a `git stash` on the
-bind-mounted `ops/` removed the files from the container, and a bad splice
-duplicated seven functions in `theme.js`.
-
-### 2. Re-anchor graded prices via the price-sync graded pass
+### 1. Re-anchor graded prices via the price-sync graded pass
 Graded combinations are still priced off the ungraded anchor. Run or extend the
 graded pass in `ops/pricing/price-sync.php` so PSA/BGS/CGC tiers take their own
 PriceCharting columns.
@@ -125,18 +109,18 @@ On PriceCharting card pages the `td` ids `used_price` / `new_price` /
 `manual_only_price` actually mean **Ungraded / Grade 8 / PSA 10** — the names
 lie.
 
-### 3. Fill in Rarity for the four Japanese singles missing it
+### 2. Fill in Rarity for the four Japanese singles missing it
 Four Japanese single products carry no `Rarity` feature. Rarity is still recorded
 and still drives the badge for every card; only the rarity row above the facet
 selectors is hidden for Japanese cards.
 
-### 4. Finish seeding Japanese stock
+### 3. Finish seeding Japanese stock
 Japanese singles and graded now use the serialised copy system, but their stock
 seeding is incomplete. Bring `cc_card_copy` and `stock_available` into step so
 `COUNT(available copies) == quantity` holds for every Japanese SKU, then re-run
 the `copies-init` invariant check.
 
-### 5. Widen the sealed `Set` vocabulary, with a supplemental flag
+### 4. Widen the sealed `Set` vocabulary, with a supplemental flag
 All 62 sealed products currently map to a real expansion, so nothing is broken —
 but the model forces a `Set` that some sealed stock will not have: era promos,
 multi-set bundles, accessories, mystery boxes.
@@ -150,7 +134,7 @@ them out of the singles' set list.
 Decided with the user 2026-08-15. See `information-architecture.md`,
 "Sealed carries its facts as features, not variants".
 
-### 6. Fix the sealed feature gaps
+### 5. Fix the sealed feature gaps
 Found while adding `Card Language`; none of them block anything today.
 
 - `Sealed Product Type` is set on **54 of 62** — the eight Japanese items
