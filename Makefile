@@ -15,7 +15,7 @@ export
 
 .DEFAULT_GOAL := help
 
-.PHONY: help up down restart logs shell dbshell provision reset backup status image image-push
+.PHONY: help up down restart logs shell dbshell provision reset backup status image release release-dry
 
 help: ## Show available targets
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -68,9 +68,11 @@ image: ## Build the deployable image (PrestaShop + our modules and ops)
 		-t $(APP_IMAGE):latest .
 	@echo "built $(APP_IMAGE):$(shell git rev-parse --short HEAD)"
 
-image-push: image ## Push the image to the registry
-	docker push $(APP_IMAGE):$(shell git rev-parse --short HEAD)
-	docker push $(APP_IMAGE):latest
+release: ## Cut a release: build, push to GHCR, tag, publish (BUMP=patch|minor|major|vX.Y.Z)
+	./devops/release.sh $(or $(BUMP),patch)
+
+release-dry: ## Say what `make release` would do, and do none of it
+	./devops/release.sh $(or $(BUMP),patch) --dry
 
 search-index: ## Rebuild the Meilisearch index from the catalogue
 	docker exec -u www-data $(SHOP) php /provisioning/catalog/search-index.php
