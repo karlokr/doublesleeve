@@ -54,6 +54,17 @@ run() {
     fi
 }
 
+# The base image runs /tmp/post-install-scripts/ whether its installer
+# succeeded or FAILED. Without this check a failed install produces 37
+# identical _DB_PREFIX_ errors that bury the one line that actually matters.
+if [ ! -f /var/www/html/app/config/parameters.php ]; then
+    printf '\n[bootstrap] app/config/parameters.php does not exist, so PrestaShop\n'
+    printf '[bootstrap] is NOT installed. The installer failed - scroll up for its\n'
+    printf '[bootstrap] error. Refusing to run: every step below would fail the same\n'
+    printf '[bootstrap] way and say nothing useful.\n'
+    exit 1
+fi
+
 printf '[bootstrap] building the shop. this takes a while - it fetches the\n'
 printf '[bootstrap] catalogue from upstream and generates every image.\n'
 
