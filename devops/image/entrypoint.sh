@@ -73,6 +73,33 @@ if [ "${INSTALLED:-0}" = "0" ]; then
     exec docker-php-entrypoint /tmp/docker_run.sh
 fi
 
+# ---------------------------------------------------------------------------
+# Everything from here to the migration gate has to happen on EVERY start of an
+# installed shop, because none of it survives a deploy: the web root is not a
+# volume, so the container comes back from the image each time. None of it has
+# anything to do with migrations, and putting it after the ledger check meant a
+# shop that had never been bootstrapped got none of it - which is exactly how
+# .htaccess stayed missing and every link 404'd on a container that was
+# otherwise healthy.
+
+# The installer ships in the base image and is only ever renamed by its
+# entrypoint, never removed - so /install/ comes back on every deploy and is
+# publicly reachable. On an installed shop it has no job left.
+rm -rf /var/www/html/install /var/www/html/install.lock 2>/dev/null || true
+
+# admin/ is not a volume either, so the image puts it back every start.
+if [ "$CC_ADMIN_FOLDER" != "admin" ] && [ -d /var/www/html/admin ]; then
+    log "admin folder -> $CC_ADMIN_FOLDER"
+    rm -rf "/var/www/html/$CC_ADMIN_FOLDER"
+    mv /var/www/html/admin "/var/www/html/$CC_ADMIN_FOLDER"
+fi
+
+# Friendly URLs are Apache rewrites and the rules live in a .htaccess that
+# PrestaShop generates. Without it Apache 404s every link before PHP is reached.
+log "regenerating .htaccess"
+su -s /bin/sh -c "php /provisioning/deploy/htaccess.php" www-data || \
+    log "!! .htaccess generation failed - friendly URLs will 404"
+
 # Tables alone do not mean the shop is ready for migrations. bootstrap.sh is
 # what creates the attribute groups and taxonomy they operate on, and it
 # baselines the ledger when it finishes. So an existing ledger - not existing
@@ -87,20 +114,6 @@ LEDGER=$(mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWD" -N -B 
 if [ "${LEDGER:-0}" = "0" ]; then
     log "no migration ledger: shop not bootstrapped yet, skipping migrations"
     exec docker-php-entrypoint /tmp/docker_run.sh
-fi
-
-# The installer ships in the base image and is only ever renamed by its
-# entrypoint, never removed - so /install/ comes back on every single deploy and
-# is publicly reachable. On an installed shop it has no job left, and PrestaShop
-# itself nags to delete it. Remove it here rather than on the host, or the next
-# deploy simply puts it back.
-rm -rf /var/www/html/install /var/www/html/install.lock 2>/dev/null || true
-
-# admin/ is not a volume, so the image puts it back every start.
-if [ "$CC_ADMIN_FOLDER" != "admin" ] && [ -d /var/www/html/admin ]; then
-    log "admin folder -> $CC_ADMIN_FOLDER"
-    rm -rf "/var/www/html/$CC_ADMIN_FOLDER"
-    mv /var/www/html/admin "/var/www/html/$CC_ADMIN_FOLDER"
 fi
 
 # 3. Replicas start at the same time and would migrate concurrently. A named
@@ -123,11 +136,5 @@ fi
 mysql -h "$DB_SERVER" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWD" -N -B \
     -e "SELECT RELEASE_LOCK('cc_migrate')" >/dev/null 2>&1 || true
 
-# Friendly URLs are Apache rewrites, and the rules live in a .htaccess that
-# PrestaShop writes into the web root - which is not a volume, so it is gone on
-# every deploy. Without it every link off the homepage is a bare Apache 404.
-log "regenerating .htaccess"
-su -s /bin/sh -c "php /provisioning/deploy/htaccess.php" www-data || \
-    log "!! .htaccess generation failed - friendly URLs will 404"
 
 exec docker-php-entrypoint /tmp/docker_run.sh
