@@ -94,6 +94,16 @@ if [ "$CC_ADMIN_FOLDER" != "admin" ] && [ -d /var/www/html/admin ]; then
     mv /var/www/html/admin "/var/www/html/$CC_ADMIN_FOLDER"
 fi
 
+# var/ IS a volume, so Symfony's compiled container survives every deploy - and
+# it bakes in configuration that came from the environment. PS_TRUSTED_PROXIES
+# was compiled in as empty and stayed that way through six image upgrades, so
+# the back office kept refusing https logins long after the variable was set.
+# New code against an old compiled container is the same hazard in general.
+#
+# Costs one slow first request after a deploy. Worth it.
+log "clearing the compiled cache"
+rm -rf /var/www/html/var/cache/prod /var/www/html/var/cache/dev 2>/dev/null || true
+
 # Friendly URLs are Apache rewrites and the rules live in a .htaccess that
 # PrestaShop generates. Without it Apache 404s every link before PHP is reached.
 log "regenerating .htaccess"
