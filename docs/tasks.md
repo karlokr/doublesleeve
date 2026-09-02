@@ -101,27 +101,42 @@ pass with human review of the ambiguous ones.
 artwork keeps coming from pokemontcg.io and the Bulbagarden Archives.
 
 ### 1. Make the shop deployable — see docs/deployment.md
-Asked 2026-08-15. The plan is written; these are the four pieces of work it
-identifies, worst first.
+Asked 2026-08-15. Plan written. Five pieces, in the order that makes each next
+one cheaper.
 
-**a. Back up the images.** 3.6 GB and 18,839 files live in the `ps_html` volume,
-on one machine, in no backup — `make backup` is database-only. Losing that
-volume means re-fetching thousands of scans from third parties and recompositing
-every slab. Extend `backup` to tar `img/` and put both copies off the machine.
-Cheapest fix here, and the largest risk.
+**a. Put the shop in its own image.** Today nothing is versioned as
+"PrestaShop + our shop" — the base image runs and our work is bind-mounted
+beside it. A `Dockerfile` that is `FROM prestashop/prestashop:9.1.4` plus our
+`modules/` and `ops/` gives a taggable artifact, makes a PrestaShop upgrade a
+one-line `FROM` bump, and makes rollback real.
 
-**b. A migration ledger.** Nothing records which migrations have run, so a
-deploy relies on someone remembering. Add a `cc_migration` table (filename,
-applied-at) and a runner that applies what is missing in filename order.
+  The catch is the whole trick: the compose file currently mounts a volume over
+  **all** of `/var/www/html`, which would hide anything baked in. That volume
+  has to shrink to the paths that hold state — `img/`, `var/`, `config/`,
+  `app/config/parameters.php`, `upload/`, `download/`. It also deletes work:
+  `install-theme-module.sh` only copies files because the module lives outside
+  the image.
 
-**c. One ordered `make bootstrap`.** Every target needed to build a shop from
-nothing exists, but the order is tribal knowledge and is order-sensitive:
-`setup.php` recreates taxonomy the align scripts delete, which has resurrected
-retired data twice. The sequence is written down at the end of
-`docs/deployment.md` — encode it.
+**b. Put the images on a diet, before engineering any backup for them.**
+3.6 GB, of which 703 MB is originals kept at source resolution (largest 4.7 MB)
+and 2.3 GB is PrestaShop generating **twelve** sizes per image, several of them
+near-duplicates the theme never asks for. Nothing is webp. Cap originals at
+intake, prune `image_type`, enable webp — a few hundred MB is the realistic
+target. There is no sense building transport for 3.6 GB that ought to be 400.
 
-**d. A second environment.** One `.env`, one host, nowhere to rehearse a
-migration before it touches real stock.
+**c. Back up what is left.** `make backup` is database-only, so the imagery
+exists in exactly one place on one machine.
+
+**d. A migration ledger.** Nothing records which migrations have run, so a
+deploy relies on someone remembering. A `cc_migration` table (filename,
+applied-at) plus a runner that applies what is missing in filename order.
+
+**e. One ordered `make bootstrap`, and a second environment.** Every target
+needed to build a shop from nothing exists, but the order is tribal knowledge
+and order-sensitive — `setup.php` recreates taxonomy the align scripts delete,
+which has resurrected retired data twice. The sequence is written down at the
+end of `docs/deployment.md`; encode it, then use it to stand up somewhere to
+rehearse migrations that is not production.
 
 ### 2. Re-anchor graded prices via the price-sync graded pass
 Graded combinations are still priced off the ungraded anchor. Run or extend the

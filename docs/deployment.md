@@ -11,7 +11,7 @@ Docker volumes that git has never seen.
 | Modules, theme, ops scripts | the repo | yes |
 | Source assets — slab frames, fonts, card backs, seed JSON, set CSVs | the repo | yes |
 | Categories, products, attributes, features, prices, orders | `db_data` volume | **no** |
-| 18,839 generated images, 3.6 GB — scans, cutouts, slab composites, nav art, set logos | `ps_html` volume | **no** |
+| 18,839 generated images, 3.6 GB — see gap 1, most of it avoidable | `ps_html` volume | **no** |
 | Search index | `meili_data` volume | no (rebuildable) |
 
 `make backup` dumps the database. **It does not touch the 3.6 GB of images**,
@@ -71,15 +71,33 @@ so they run when their source changes, not on every deploy.
 
 ## The four gaps, worst first
 
-### 1. The images are unbacked-up single-copy state
+### 1. The images are 3.6 GB, and most of that is waste
 
-3.6 GB in one Docker volume, on one machine, in no backup. Losing that volume
-means re-fetching thousands of scans from third parties and recompositing every
-slab — days of work dependent on those sources still serving the same files.
+That number is not normal, and it is worth knowing why before backing it up:
 
-This is a bigger risk than anything about the deploy itself, and it is the
-cheapest to fix: extend `make backup` to tar `img/` alongside the SQL dump, and
-put both somewhere off the machine.
+| | files | size |
+|---|---|---|
+| originals | 797 | 703 MB |
+| generated thumbnails | 9,564 | 2.3 GB |
+
+- **Originals are stored at source resolution.** The largest is 4.7 MB; the
+  average is 880 KB. Scans are fetched from the TCGplayer CDN and never
+  downscaled. A card scan needs about 1000px on its long edge.
+- **PrestaShop generates twelve sizes of every image.**
+  `cart/small/medium/large/home_default`, `default_xs/sm/md/lg/xl`, and
+  `product_main` plus `product_main_2x` at 1440². Several are near-duplicates
+  the theme never requests. 752 image rows x 12 is the 9,564 files.
+- **Nothing is webp.** Every one of those files is a JPEG.
+
+Capping originals at intake, pruning `image_type` to the sizes the theme
+actually asks for, and enabling webp should take this to a few hundred
+megabytes. Do that *before* building a backup process around it — there is no
+sense engineering the transport of 3.6 GB that ought to be 400 MB.
+
+Then extend `make backup`, which is database-only today, to carry `img/` as
+well. Until it does, the imagery exists in exactly one place on one machine, and
+losing it means re-fetching thousands of scans from third parties and
+recompositing every slab.
 
 ### 2. Nothing records which migrations have run
 
@@ -108,24 +126,68 @@ migration before it touches real stock. A staging environment is what makes
 "easily changeable" true rather than aspirational — it is the difference between
 testing a catalogue change and performing it on customers.
 
+## The deployable artifact: our own image
+
+Today `docker-compose.yml` runs `prestashop/prestashop:${PS_VERSION}` and our
+work sits *beside* it as bind mounts — `./ops:/provisioning`, `./modules:/modules`
+— with an installer copying modules into the running container. That is right
+for development and wrong for deployment, because it means **no artifact
+anywhere is "PrestaShop and our shop"**. There is nothing to version, pull or
+roll back.
+
+Build one:
+
+```dockerfile
+FROM prestashop/prestashop:9.1.4
+COPY modules/ /var/www/html/modules/
+COPY ops/     /provisioning/
+```
+
+Everything Docker is supposed to give you then does:
+
+- deploy is `docker compose pull && docker compose up -d`
+- **upgrading PrestaShop is a one-line `FROM` bump**, rebuild, redeploy
+- rollback is deploying the previous tag
+- CI builds and tags on every push to `main`
+- development keeps the bind mounts, so editing is still instant
+
+### The catch, and it is the whole trick
+
+PrestaShop's image expects `/var/www/html` to be writable, and the current
+compose file mounts a volume over **all** of it. A volume over that path hides
+everything baked into the image — bake the theme in and the volume covers it.
+
+So the volume has to shrink to the paths that actually hold state:
+
+| path | why it persists |
+|---|---|
+| `img/` | uploaded and generated imagery |
+| `var/` | cache and logs |
+| `config/`, `app/config/parameters.php` | the installed shop's DB credentials |
+| `upload/`, `download/` | customer-supplied and digital-product files |
+
+Everything else — core, modules, theme — comes from the image and is replaced
+wholesale on deploy. That is what makes a deploy atomic and a rollback real.
+
+It also removes a step: `install-theme-module.sh` currently *copies* the module
+into place, which is only necessary because the module lives outside the image.
+Once it is baked in, the installer has nothing to copy and only needs to
+register hooks — a database operation, which is to say a migration.
+
 ## Suggested shape
 
 Nothing here needs Kubernetes. A single host running the same compose file is
 the right size for this shop.
 
-- **Host:** one VPS with enough disk for `img/` to grow. Same
-  `docker-compose.yml`, different `.env`.
-- **Images:** on a mounted volume that is snapshotted, or moved to object
-  storage with the shop reading from a CDN. Object storage is the better answer
-  once the catalogue grows, because it also removes the images from the deploy
-  path entirely.
-- **Database:** managed MariaDB if you would rather not own backups, or the
-  compose service plus a scheduled dump off-box.
-- **Deploys:** pull, run pending migrations, reinstall changed modules, clear
-  cache. Under a minute, and none of it touches the catalogue.
-- **First deploy only:** restore a dump and an image bundle taken from the
-  machine that has them. That is the honest way to move the shop you already
-  have — not to rebuild it and hope the third parties agree.
+- **Host:** one VPS with enough disk for `img/` to grow. Same compose file,
+  different `.env`, our image tag instead of PrestaShop's.
+- **Registry:** GitHub Container Registry, since the repo is already there.
+- **Images:** on a snapshotted volume, or object storage behind a CDN once the
+  catalogue grows — that also takes them out of the deploy path entirely.
+- **Database:** managed MariaDB, or the compose service plus a dump off-box.
+- **First deploy only:** restore a dump and an image bundle from the machine
+  that has them. That is how you move the shop you already have, rather than
+  rebuilding it and hoping five third parties agree.
 
 ## Running order, for a genuinely empty shop
 
