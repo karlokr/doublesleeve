@@ -24,6 +24,7 @@
 # `doublesleeve_internal` (created once, see docs/deployment.md).
 #
 # Env: APP_IMAGE_TAG  DB_NAME  DB_USER  DB_PASSWORD  PS_DOMAIN  PS_FOLDER_ADMIN
+#      MEILI_MASTER_KEY
 # ─────────────────────────────────────────────────────────────────────────────
 version: "3.8"
 
@@ -37,6 +38,10 @@ services:
       DB_PASSWD: ${DB_PASSWORD}
       PS_DOMAIN: ${PS_DOMAIN}
       PS_FOLDER_ADMIN: ${PS_FOLDER_ADMIN}
+      # Read by getenv() in the search module's ajax controller, which talks to
+      # Meilisearch directly. Same value as the search stack, or every query
+      # comes back 403 and the storefront search box silently returns nothing.
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
       # Install-time only: the base image passes this to the installer. On an
       # installed shop the live setting is PS_SSL_ENABLED in ps_configuration,
       # not this. Left here so a from-scratch install comes up on https.
@@ -105,6 +110,8 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWD: ${DB_PASSWORD}
+      # search-index.php reads this to rebuild the index.
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
       # Migrations are the web container's job. Two containers racing the same
       # ledger is what the lock exists for, but there is no reason to make it
       # work for a living.
