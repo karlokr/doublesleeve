@@ -92,6 +92,10 @@ fi
 # align scripts in step 4 - setup.php recreates taxonomy they delete.
 if step "configuration and catalogue model"; then
     run "shop configuration"      php_run setup/setup.php
+    # Reconciles the back office account with ADMIN_MAIL/ADMIN_PASSWD. The
+    # installer sets those once and never revisits them, so correcting the stack
+    # environment afterwards otherwise changes nothing.
+    run "admin account"           php_run setup/admin-user.php
     run "facets"                  php_run setup/facets.php
     run "storefront"              php_run setup/storefront.php
     run "cms pages"               php_run setup/pages.php
