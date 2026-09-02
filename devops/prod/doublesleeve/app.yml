@@ -47,7 +47,13 @@ services:
       # Meilisearch directly. Same value as the search stack, or every query
       # comes back 403 and the storefront search box silently returns nothing.
       MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
-      DB_PREFIX: ${DB_PREFIX:-cc_}
+      # ps_, matching what production actually installed with, and matching
+      # the base image's own default so an unset variable cannot silently
+      # change it. Dev uses cc_; that is a different database and only matters
+      # if a dump ever moves between them. Whatever this is, it must never
+      # change on an installed shop - PrestaShop would look for 310 tables that
+      # do not exist.
+      DB_PREFIX: ${DB_PREFIX:-ps_}
       # PS_INSTALL_AUTO / PS_ERASE_DB / PS_INSTALL_DB are deliberately absent.
       # The entrypoint sets them from what the database actually contains, so a
       # stale copy of this file cannot silently skip the install.
