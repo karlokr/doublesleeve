@@ -73,6 +73,9 @@ for the price engine, serialised inventory and intake pipeline, and
 [docs/image-pipeline.md](docs/image-pipeline.md) for how every image on the
 storefront is generated — cutouts, slab frames, card backs and set logos.
 
+[docs/deployment.md](docs/deployment.md) covers how this is deployed and what a
+fresh environment does and does not get.
+
 [docs/tasks.md](docs/tasks.md) is the master task list: everything asked for that
 is not yet done, kept current in the same turn as the work.
 

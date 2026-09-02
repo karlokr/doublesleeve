@@ -100,7 +100,30 @@ pass with human review of the ambiguous ones.
 **Their images were fetched and then deleted at the user's request** — set
 artwork keeps coming from pokemontcg.io and the Bulbagarden Archives.
 
-### 1. Re-anchor graded prices via the price-sync graded pass
+### 1. Make the shop deployable — see docs/deployment.md
+Asked 2026-08-15. The plan is written; these are the four pieces of work it
+identifies, worst first.
+
+**a. Back up the images.** 3.6 GB and 18,839 files live in the `ps_html` volume,
+on one machine, in no backup — `make backup` is database-only. Losing that
+volume means re-fetching thousands of scans from third parties and recompositing
+every slab. Extend `backup` to tar `img/` and put both copies off the machine.
+Cheapest fix here, and the largest risk.
+
+**b. A migration ledger.** Nothing records which migrations have run, so a
+deploy relies on someone remembering. Add a `cc_migration` table (filename,
+applied-at) and a runner that applies what is missing in filename order.
+
+**c. One ordered `make bootstrap`.** Every target needed to build a shop from
+nothing exists, but the order is tribal knowledge and is order-sensitive:
+`setup.php` recreates taxonomy the align scripts delete, which has resurrected
+retired data twice. The sequence is written down at the end of
+`docs/deployment.md` — encode it.
+
+**d. A second environment.** One `.env`, one host, nowhere to rehearse a
+migration before it touches real stock.
+
+### 2. Re-anchor graded prices via the price-sync graded pass
 Graded combinations are still priced off the ungraded anchor. Run or extend the
 graded pass in `ops/pricing/price-sync.php` so PSA/BGS/CGC tiers take their own
 PriceCharting columns.
@@ -109,18 +132,18 @@ On PriceCharting card pages the `td` ids `used_price` / `new_price` /
 `manual_only_price` actually mean **Ungraded / Grade 8 / PSA 10** — the names
 lie.
 
-### 2. Fill in Rarity for the four Japanese singles missing it
+### 3. Fill in Rarity for the four Japanese singles missing it
 Four Japanese single products carry no `Rarity` feature. Rarity is still recorded
 and still drives the badge for every card; only the rarity row above the facet
 selectors is hidden for Japanese cards.
 
-### 3. Finish seeding Japanese stock
+### 4. Finish seeding Japanese stock
 Japanese singles and graded now use the serialised copy system, but their stock
 seeding is incomplete. Bring `cc_card_copy` and `stock_available` into step so
 `COUNT(available copies) == quantity` holds for every Japanese SKU, then re-run
 the `copies-init` invariant check.
 
-### 4. Widen the sealed `Set` vocabulary, with a supplemental flag
+### 5. Widen the sealed `Set` vocabulary, with a supplemental flag
 All 62 sealed products currently map to a real expansion, so nothing is broken —
 but the model forces a `Set` that some sealed stock will not have: era promos,
 multi-set bundles, accessories, mystery boxes.
@@ -134,7 +157,7 @@ them out of the singles' set list.
 Decided with the user 2026-08-15. See `information-architecture.md`,
 "Sealed carries its facts as features, not variants".
 
-### 5. Fix the sealed feature gaps
+### 6. Fix the sealed feature gaps
 Found while adding `Card Language`; none of them block anything today.
 
 - `Sealed Product Type` is set on **54 of 62** — the eight Japanese items
