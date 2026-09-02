@@ -174,6 +174,78 @@ into place, which is only necessary because the module lives outside the image.
 Once it is baked in, the installer has nothing to copy and only needs to
 register hooks — a database operation, which is to say a migration.
 
+## The upgrade contract
+
+This is the part that makes a version bump safe, and it is a rule about how
+migrations are written rather than anything a script can enforce.
+
+**Deploying an older image does not undo a migration.** Code rolls back for
+free — it is just a different tag. The database does not. So "safe" cannot mean
+"reversible"; it has to mean that going backwards was never dangerous in the
+first place:
+
+> **Migrations are forward-only and backward-compatible.** After release N+1's
+> migrations have run, release N's code must still work against the database.
+
+That single rule is what makes `deploy.sh <previous tag>` a real rollback rather
+than a hope. It costs something: a change that renames or removes anything is
+split across two releases.
+
+| | release N+1 | release N+2, after N+1 is retired everywhere |
+|---|---|---|
+| add a column | add it, nullable; old code ignores it | — |
+| rename a column | add the new one, write both, read the new | drop the old one |
+| remove a value | stop writing it, leave it in place | delete it |
+| change a meaning | add a new field; leave the old one alone | drop the old field |
+
+The things that break a rollback, and so are never done in one release: dropping
+or renaming a column the previous image still reads, deleting an attribute value
+that products still reference, or changing what a column means in place.
+
+`ops/migrations/retire-ungraded-graders.php` is the shape to copy — it refuses
+to delete any grader that has combinations, so it cannot remove something the
+running code depends on.
+
+### First run versus upgrade
+
+`devops/prod/deploy.sh` decides which it is by asking the **database**, not by
+reading a marker file or being told:
+
+```sql
+SELECT COUNT(*) FROM information_schema.tables WHERE table_name LIKE '%_shop'
+```
+
+No shop tables means an install: PrestaShop installs itself, the setup scripts
+run, and the migrations that shipped in that image are **baselined** — recorded
+as applied without being replayed against a shop `setup.php` has just built
+correctly.
+
+Anything else is an upgrade, and an upgrade runs exactly one thing: the
+migrations the new image brought that this database has not seen. They run in a
+one-shot container of the new image, so a failure never leaves a half-started
+web container serving traffic.
+
+### What each deploy does, in order
+
+1. **Pull first.** A bad tag or an unreachable registry fails while the old
+   version is still serving.
+2. **Back up the database.** It is the only thing that cannot be restored by
+   redeploying.
+3. **Migrate** in a one-shot container, forward-only, ledger-recorded.
+4. **Start** the new containers.
+5. **Health check**, and on failure print the exact rollback command.
+
+## The release, and where versions come from
+
+A pull request merged into `production` builds the image, tags it, and cuts a
+GitHub release. The version comes from a **label on the pull request** —
+`major`, `minor`, or nothing for a patch — rather than from parsing commit
+subjects. A label is a deliberate act, visible before the merge, and it does not
+change meaning because of how someone phrased a commit.
+
+Images carry three tags: the version (what you deploy), the commit sha (what
+makes a running container traceable to an exact tree), and `latest`.
+
 ## Suggested shape
 
 Nothing here needs Kubernetes. A single host running the same compose file is

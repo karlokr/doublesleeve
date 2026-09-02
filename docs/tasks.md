@@ -126,11 +126,28 @@ target. There is no sense building transport for 3.6 GB that ought to be 400.
 **c. Back up what is left.** `make backup` is database-only, so the imagery
 exists in exactly one place on one machine.
 
-**d. A migration ledger.** Nothing records which migrations have run, so a
-deploy relies on someone remembering. A `cc_migration` table (filename,
-applied-at) plus a runner that applies what is missing in filename order.
+**d. A migration ledger — DONE.** `src/ops/deploy/migrate.php` keeps a
+`cc_migration` table and applies what is missing in filename order. It records a
+checksum too, and **stops** if an already-applied migration has changed on disk:
+that means production and the repository disagree about what the database is,
+which is a human's decision, not a deploy's. `--baseline` records without
+running, for a database that already has them; `--dry` lists. This database is
+baselined at 6.
 
-**e. One ordered `make bootstrap`, and a second environment.** Every target
+  New migrations should be date-prefixed (`2026-08-15-name.php`) so filename
+  order is total. The six that predate the runner are unprefixed and baselined.
+
+**e. CI and releases — DONE.** `.github/workflows/ci.yml` runs on every PR:
+PHP, JS and shell syntax, both compose files parse, and the image builds
+(without pushing). `.github/workflows/release.yml` runs when a PR merges into
+`production`: it works out the next semver from a `major`/`minor` label on the
+PR (patch by default), builds and pushes to GHCR tagged with the version, the
+sha and `latest`, then creates the git tag and GitHub release.
+
+  Needs from you: create the `production` branch, and confirm GHCR package
+  permissions the first time it pushes.
+
+**f. One ordered `make bootstrap`, and a second environment.** Every target
 needed to build a shop from nothing exists, but the order is tribal knowledge
 and order-sensitive — `setup.php` recreates taxonomy the align scripts delete,
 which has resurrected retired data twice. The sequence is written down at the

@@ -1,0 +1,99 @@
+# Cut a release when a pull request lands on `production`.
+#
+# The version is decided by a LABEL on the pull request - `major`, `minor`, or
+# nothing for a patch - rather than by parsing commit messages. A label is a
+# deliberate act by the person merging, visible on the PR before it lands, and
+# it does not silently change meaning because someone wrote a commit subject in
+# a particular shape.
+#
+# The image is tagged with the version AND the commit sha. The version is what
+# people deploy; the sha is what makes any running container traceable to an
+# exact tree even after tags are moved.
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [production]
+
+permissions:
+  contents: write      # create the tag and the release
+  packages: write      # push to GHCR
+
+jobs:
+  release:
+    # Closed is not merged. A pull request that was rejected must not ship.
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0      # tags, so the previous version can be found
+
+      - name: Work out the next version
+        id: version
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          previous="$(git tag --list 'v*' --sort=-v:refname | head -1)"
+          previous="${previous:-v0.0.0}"
+          echo "previous=$previous" >> "$GITHUB_OUTPUT"
+
+          IFS='.' read -r major minor patch <<< "${previous#v}"
+          if   echo "$LABELS" | grep -q '"major"'; then major=$((major+1)); minor=0; patch=0
+          elif echo "$LABELS" | grep -q '"minor"'; then minor=$((minor+1)); patch=0
+          else patch=$((patch+1)); fi
+
+          version="v${major}.${minor}.${patch}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing $version (previous $previous)"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: devops/image/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Tag and release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+        run: |
+          set -euo pipefail
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+          {
+            echo "Image: \`ghcr.io/${{ github.repository }}:$VERSION\`"
+            echo
+            echo "Deploy:"
+            echo '```bash'
+            echo "./devops/prod/deploy.sh $VERSION"
+            echo '```'
+            echo
+            echo "Rollback is deploying the previous tag — migrations are"
+            echo "forward-only and backward-compatible, so \`$PREVIOUS\` runs"
+            echo "against this schema."
+          } > notes.md
+
+          gh release create "$VERSION" \
+            --title "$VERSION" \
+            --notes-file notes.md \
+            --generate-notes
