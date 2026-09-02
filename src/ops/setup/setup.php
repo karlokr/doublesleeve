@@ -140,12 +140,30 @@ foreach (LOCALES as $locale) {
         continue;
     }
 
+    /**
+     * downloadAndInstallLanguagePack takes an ISO CODE, not a locale. Its first
+     * line is Validate::isLanguageIsoCode(), which is /^[a-zA-Z]{2,3}$/ - so
+     * "fr-CA" fails it and the method returns a bare false before making a
+     * single network call. No exception, no error array, nothing to report:
+     * that is the empty "could not install fr-CA:" that hid this for days.
+     *
+     * The ISO is not the first half of the locale either. Canadian French is
+     * "qc" in PrestaShop, not "fr". Ask PrestaShop rather than guess.
+     */
+    $details = Language::getJsonLanguageDetails($locale);
+    $iso = is_array($details) ? (string) ($details['iso_code'] ?? '') : '';
+
+    if ($iso === '') {
+        warn("no ISO code for $locale - PrestaShop does not publish a pack for it");
+        continue;
+    }
+
     try {
-        $result = Language::downloadAndInstallLanguagePack($locale, _PS_VERSION_, null, true);
+        $result = Language::downloadAndInstallLanguagePack($iso, _PS_VERSION_, null, true);
         if ($result === true) {
-            ok("installed $locale");
+            ok("installed $locale (iso $iso)");
         } else {
-            $msg = is_array($result) ? implode('; ', $result) : (string) $result;
+            $msg = is_array($result) ? implode('; ', $result) : 'rejected the iso code "' . $iso . '"';
             warn("could not install $locale: $msg");
         }
     } catch (Throwable $e) {
